@@ -52,7 +52,7 @@ async function initializeDatabase() {
 
     // Create root user if it doesn't exist
     if (rows.length === 0) {
-      const hashedPassword = await bcrypt.hash('root123', 10);
+      const hashedPassword = await bcrypt.hash('123456', 10);
       await connection.query(
         'INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
         ['root', 'root@example.com', hashedPassword, 'admin']
