@@ -152,6 +152,16 @@ CREATE TABLE IF NOT EXISTS transactions (
 ```
 POST /api/auth/register
 
+```bash
+curl -X POST '<baseUrl>/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "string",
+    "password": "string",
+    "email": "string"
+  }'
+```
+
 请求体：
 {
   "username": "string",
@@ -181,6 +191,15 @@ POST /api/auth/register
 #### 用户登录
 ```
 POST /api/auth/login
+
+```bash
+curl -X POST '<baseUrl>/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "string",
+    "password": "string"
+  }'
+```
 
 请求体：
 {
@@ -214,13 +233,18 @@ POST /api/auth/login
 ### 用户管理（需要认证）
 
 所有认证接口需要在请求头中携带 token：
-```
+```bash
 Authorization: Bearer <token>
 ```
 
 #### 获取所有用户（需要管理员权限）
 ```
 GET /api/users
+
+```bash
+curl -X GET '<baseUrl>/users' \
+  -H 'Authorization: Bearer <token>'
+```
 
 成功响应：(200 OK)
 {
@@ -250,6 +274,17 @@ GET /api/users
 ```
 PUT /api/users/:id
 
+```bash
+curl -X PUT '<baseUrl>/users/2' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "newusername",
+    "email": "newemail@example.com",
+    "role": "user"
+  }'
+```
+
 请求体：
 {
   "username": "string",
@@ -275,6 +310,12 @@ PUT /api/users/:id
 #### 删除用户（需要管理员权限）
 ```
 DELETE /api/users/:id
+
+```bash
+curl -X DELETE '<baseUrl>/users/2' \
+  -H 'Authorization: Bearer <token>'
+```
+
 
 成功响应：(200 OK)
 {
