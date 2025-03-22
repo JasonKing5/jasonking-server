@@ -152,7 +152,6 @@ CREATE TABLE IF NOT EXISTS transactions (
 ```
 POST /api/auth/register
 
-```bash
 curl -X POST '<baseUrl>/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -160,7 +159,6 @@ curl -X POST '<baseUrl>/auth/register' \
     "password": "string",
     "email": "string"
   }'
-```
 
 请求体：
 {
@@ -192,14 +190,12 @@ curl -X POST '<baseUrl>/auth/register' \
 ```
 POST /api/auth/login
 
-```bash
 curl -X POST '<baseUrl>/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{
     "username": "string",
     "password": "string"
   }'
-```
 
 请求体：
 {
@@ -241,10 +237,8 @@ Authorization: Bearer <token>
 ```
 GET /api/users
 
-```bash
 curl -X GET '<baseUrl>/users' \
   -H 'Authorization: Bearer <token>'
-```
 
 成功响应：(200 OK)
 {
@@ -274,7 +268,6 @@ curl -X GET '<baseUrl>/users' \
 ```
 PUT /api/users/:id
 
-```bash
 curl -X PUT '<baseUrl>/users/2' \
   -H 'Authorization: Bearer <token>' \
   -H 'Content-Type: application/json' \
@@ -283,7 +276,6 @@ curl -X PUT '<baseUrl>/users/2' \
     "email": "newemail@example.com",
     "role": "user"
   }'
-```
 
 请求体：
 {
@@ -311,10 +303,8 @@ curl -X PUT '<baseUrl>/users/2' \
 ```
 DELETE /api/users/:id
 
-```bash
 curl -X DELETE '<baseUrl>/users/2' \
   -H 'Authorization: Bearer <token>'
-```
 
 
 成功响应：(200 OK)
