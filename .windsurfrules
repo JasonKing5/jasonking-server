@@ -1,0 +1,140 @@
+# JasonKing Server
+
+一个基于 Node.js + Express + MySQL 的轻量级个人网站后端服务器。
+
+## 技术栈
+
+- **运行时**: Node.js
+- **Web 框架**: Express.js
+- **数据库**: MySQL
+- **认证**: JWT (JSON Web Tokens)
+- **密码加密**: bcryptjs
+- **开发工具**: nodemon（热重载）
+
+## 项目特点
+
+- 轻量级：使用数据库 MySQL
+- 安全性：
+  - 密码加密存储
+  - JWT 认证
+  - 基于角色的访问控制（RBAC）
+  - 内置 root 用户保护机制
+- 开发友好：支持热重载
+- RESTful API 设计
+
+## 项目结构
+
+```
+jasonking-server/
+├── src/
+│   ├── app.js              # 应用入口文件
+│   ├── config/             # 配置文件
+│   │   └── database.js     # 数据库配置
+│   ├── controllers/        # 控制器
+│   │   └── userController.js
+│   ├── middleware/         # 中间件
+│   │   └── auth.js        # 认证中间件
+│   ├── models/            # 数据模型
+│   │   └── user.js       # 用户模型
+│   └── routes/           # 路由
+│       └── userRoutes.js # 用户路由
+├── scripts/              # 脚本文件
+│   └── init-db.js       # 数据库初始化脚本
+├── .env                # 环境变量配置
+├── package.json       # 项目配置和依赖
+└── README.md         # 项目文档
+```
+
+## 快速开始
+
+### 环境要求
+
+- Node.js >= 14.0.0
+- pnpm >= 6.0.0
+
+### 安装
+
+1. 克隆项目
+```bash
+git clone <repository-url>
+cd jasonking-server
+```
+
+2. 安装依赖
+```bash
+pnpm install
+```
+
+3. 配置环境变量
+复制 `.env-example` 文件为 `.env`，并编辑 `.env` 文件，设置必要的环境变量：
+```
+PORT=4000
+NODE_ENV=development
+JWT_SECRET=your-secret-key
+...
+```
+
+4. 初始化数据库
+```bash
+pnpm run init-db
+```
+
+5. 启动服务器
+```bash
+# 开发模式（支持热重载）
+pnpm run dev
+
+# 生产模式
+pnpm start
+```
+
+## 数据库设计
+
+### 用户表
+
+```sql
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)
+```
+
+### 交易表
+
+```sql
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  type ENUM('income', 'expense') NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  description TEXT,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
+```
+
+**注意：**
+- 数据库连接配置在 `src/config/database.js` 中
+- 用户名 root 默认密码 123456
+- JWT 密钥在 `.env` 中配置
+
+你在分析和生成代码之前，先
+1. 通过以上信息，了解项目的情况。
+2. 阅读 `README.md` 文件，了解项目的情况。
+3. 基于已有的项目架构，技术栈，和数据库设计，和API文档，以及开发模式和思路，进行代码生成。
+4. 生成代码时，要确保代码的可读性和可维护性。
+5. 生成代码时，要确保代码的正确性和安全性。
+6. 生成代码时，要确保代码的性能和可扩展性。
+7. 生成代码时，要确保代码的可测试性。
+8. 生成代码时，要确保代码的可部署性。
+9. 完成代码生成或修改后，需要同步更新 `README.md` 文件。
+
+
