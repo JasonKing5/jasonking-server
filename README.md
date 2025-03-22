@@ -94,14 +94,31 @@ pnpm start
 
 ```sql
 CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )
+```
+
+### 交易表
+
+```sql
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  type ENUM('income', 'expense') NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  description TEXT,
+  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )
 ```
 
 ## API 文档
@@ -112,9 +129,9 @@ CREATE TABLE users (
 
 ```json
 {
-    "code": "number",    // HTTP 状态码
-    "message": "string", // 响应消息
-    "data": "any"       // 响应数据，可能是对象、数组或 null
+    "code": "number",
+    "message": "string",
+    "data": "any"
 }
 ```
 
@@ -137,27 +154,27 @@ POST /api/auth/register
 
 请求体：
 {
-    "username": "string",
-    "password": "string",
-    "email": "string"
+  "username": "string",
+  "password": "string",
+  "email": "string"
 }
 
 成功响应：(201 Created)
 {
-    "code": 201,
-    "message": "User registered successfully",
-    "data": {
-        "id": number,
-        "username": "string",
-        "email": "string"
-    }
+  "code": 201,
+  "message": "User registered successfully",
+  "data": {
+    "id": number,
+    "username": "string",
+    "email": "string"
+  }
 }
 
 错误响应：(400 Bad Request)
 {
-    "code": 400,
-    "message": "Username already exists",
-    "data": null
+  "code": 400,
+  "message": "Username already exists",
+  "data": null
 }
 ```
 
@@ -167,30 +184,30 @@ POST /api/auth/login
 
 请求体：
 {
-    "username": "string",
-    "password": "string"
+  "username": "string",
+  "password": "string"
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Login successful",
-    "data": {
-        "token": "string",
-        "user": {
-            "id": number,
-            "username": "string",
-            "email": "string",
-            "role": "string"
-        }
+  "code": 200,
+  "message": "Login successful",
+  "data": {
+    "token": "string",
+    "user": {
+      "id": number,
+      "username": "string",
+      "email": "string",
+      "role": "string"
     }
+  }
 }
 
 错误响应：(401 Unauthorized)
 {
-    "code": 401,
-    "message": "Invalid credentials",
-    "data": null
+  "code": 401,
+  "message": "Invalid credentials",
+  "data": null
 }
 ```
 
@@ -207,25 +224,25 @@ GET /api/users
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Users retrieved successfully",
-    "data": [
-        {
-            "id": number,
-            "username": "string",
-            "email": "string",
-            "role": "string",
-            "created_at": "string",
-            "updated_at": "string"
-        }
-    ]
+  "code": 200,
+  "message": "Users retrieved successfully",
+  "data": [
+    {
+      "id": number,
+      "username": "string",
+      "email": "string",
+      "role": "string",
+      "created_at": "string",
+      "updated_at": "string"
+    }
+  ]
 }
 
 错误响应：(403 Forbidden)
 {
-    "code": 403,
-    "message": "Unauthorized access",
-    "data": null
+  "code": 403,
+  "message": "Unauthorized access",
+  "data": null
 }
 ```
 
@@ -235,23 +252,23 @@ PUT /api/users/:id
 
 请求体：
 {
-    "username": "string",
-    "email": "string",
-    "role": "string"  // 仅管理员可修改
+  "username": "string",
+  "email": "string",
+  "role": "string"  // 仅管理员可修改
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "User updated successfully",
-    "data": null
+  "code": 200,
+  "message": "User updated successfully",
+  "data": null
 }
 
 错误响应：(403 Forbidden)
 {
-    "code": 403,
-    "message": "Only admin can modify user role",
-    "data": null
+  "code": 403,
+  "message": "Only admin can modify user role",
+  "data": null
 }
 ```
 
@@ -261,16 +278,16 @@ DELETE /api/users/:id
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "User deleted successfully",
-    "data": null
+  "code": 200,
+  "message": "User deleted successfully",
+  "data": null
 }
 
 错误响应：(403 Forbidden)
 {
-    "code": 403,
-    "message": "Cannot delete root user",
-    "data": null
+  "code": 403,
+  "message": "Cannot delete root user",
+  "data": null
 }
 ```
 
@@ -298,43 +315,43 @@ curl -X POST '<baseUrl>/transactions' \
 
 # Example Response:
 {
-    "code": 201,
-    "message": "Transaction created successfully",
-    "data": {
-        "id": 1,
-        "user_id": 1,
-        "amount": 100.50,
-        "type": "expense",
-        "category": "food",
-        "description": "Lunch at restaurant",
-        "date": "2025-02-21T10:00:00Z",
-        "created_at": "2025-02-21T11:13:22Z"
-    }
+  "code": 201,
+  "message": "Transaction created successfully",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "amount": 100.50,
+    "type": "expense",
+    "category": "food",
+    "description": "Lunch at restaurant",
+    "date": "2025-02-21T10:00:00Z",
+    "created_at": "2025-02-21T11:13:22Z"
+  }
 }
 
 请求体：
 {
-    "amount": number,      // 交易金额
-    "type": "string",      // 交易类型
-    "category": "string",  // 交易类别
-    "description": "string", // 交易描述（可选）
-    "date": "string"       // 交易日期（可选，默认为当前时间）
+  "amount": number,      // 交易金额
+  "type": "string",      // 交易类型
+  "category": "string",  // 交易类别
+  "description": "string", // 交易描述（可选）
+  "date": "string"       // 交易日期（可选，默认为当前时间）
 }
 
 成功响应：(201 Created)
 {
-    "code": 201,
-    "message": "Transaction created successfully",
-    "data": {
-        "id": number,
-        "user_id": number,
-        "amount": number,
-        "type": "string",
-        "category": "string",
-        "description": "string",
-        "date": "string",
-        "created_at": "string"
-    }
+  "code": 201,
+  "message": "Transaction created successfully",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "amount": number,
+    "type": "string",
+    "category": "string",
+    "description": "string",
+    "date": "string",
+    "created_at": "string"
+  }
 }
 ```
 
@@ -347,38 +364,38 @@ curl -X GET '<baseUrl>/transactions' \
 
 # Example Response:
 {
-    "code": 200,
-    "message": "Transactions retrieved successfully",
-    "data": [
-        {
-            "id": 1,
-            "user_id": 1,
-            "amount": 100.50,
-            "type": "expense",
-            "category": "food",
-            "description": "Lunch at restaurant",
-            "date": "2025-02-21T10:00:00Z",
-            "created_at": "2025-02-21T11:13:22Z"
-        }
-    ]
+  "code": 200,
+  "message": "Transactions retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "amount": 100.50,
+      "type": "expense",
+      "category": "food",
+      "description": "Lunch at restaurant",
+      "date": "2025-02-21T10:00:00Z",
+      "created_at": "2025-02-21T11:13:22Z"
+    }
+  ]
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Transactions retrieved successfully",
-    "data": [
-        {
-            "id": number,
-            "user_id": number,
-            "amount": number,
-            "type": "string",
-            "category": "string",
-            "description": "string",
-            "date": "string",
-            "created_at": "string"
-        }
-    ]
+  "code": 200,
+  "message": "Transactions retrieved successfully",
+  "data": [
+    {
+      "id": number,
+      "user_id": number,
+      "amount": number,
+      "type": "string",
+      "category": "string",
+      "description": "string",
+      "date": "string",
+      "created_at": "string"
+    }
+  ]
 }
 ```
 
@@ -391,41 +408,41 @@ curl -X GET '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-    "code": 200,
-    "message": "Transaction retrieved successfully",
-    "data": {
-        "id": 1,
-        "user_id": 1,
-        "amount": 100.50,
-        "type": "expense",
-        "category": "food",
-        "description": "Lunch at restaurant",
-        "date": "2025-02-21T10:00:00Z",
-        "created_at": "2025-02-21T11:13:22Z"
-    }
+  "code": 200,
+  "message": "Transaction retrieved successfully",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "amount": 100.50,
+    "type": "expense",
+    "category": "food",
+    "description": "Lunch at restaurant",
+    "date": "2025-02-21T10:00:00Z",
+    "created_at": "2025-02-21T11:13:22Z"
+  }
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Transaction retrieved successfully",
-    "data": {
-        "id": number,
-        "user_id": number,
-        "amount": number,
-        "type": "string",
-        "category": "string",
-        "description": "string",
-        "date": "string",
-        "created_at": "string"
-    }
+  "code": 200,
+  "message": "Transaction retrieved successfully",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "amount": number,
+    "type": "string",
+    "category": "string",
+    "description": "string",
+    "date": "string",
+    "created_at": "string"
+  }
 }
 
 错误响应：(404 Not Found)
 {
-    "code": 404,
-    "message": "Transaction not found",
-    "data": null
+  "code": 404,
+  "message": "Transaction not found",
+  "data": null
 }
 ```
 
@@ -443,50 +460,50 @@ curl -X PUT '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-    "code": 200,
-    "message": "Transaction updated successfully",
-    "data": {
-        "id": 1,
-        "user_id": 1,
-        "amount": 120.00,
-        "type": "expense",
-        "category": "food",
-        "description": "Updated lunch expense",
-        "date": "2025-02-21T10:00:00Z",
-        "created_at": "2025-02-21T11:13:22Z"
-    }
+  "code": 200,
+  "message": "Transaction updated successfully",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "amount": 120.00,
+    "type": "expense",
+    "category": "food",
+    "description": "Updated lunch expense",
+    "date": "2025-02-21T10:00:00Z",
+    "created_at": "2025-02-21T11:13:22Z"
+  }
 }
 
 请求体：
 {
-    "amount": number,      // 可选
-    "type": "string",      // 可选
-    "category": "string",  // 可选
-    "description": "string", // 可选
-    "date": "string"       // 可选
+  "amount": number,      // 可选
+  "type": "string",      // 可选
+  "category": "string",  // 可选
+  "description": "string", // 可选
+  "date": "string"       // 可选
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Transaction updated successfully",
-    "data": {
-        "id": number,
-        "user_id": number,
-        "amount": number,
-        "type": "string",
-        "category": "string",
-        "description": "string",
-        "date": "string",
-        "created_at": "string"
-    }
+  "code": 200,
+  "message": "Transaction updated successfully",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "amount": number,
+    "type": "string",
+    "category": "string",
+    "description": "string",
+    "date": "string",
+    "created_at": "string"
+  }
 }
 
 错误响应：(403 Forbidden)
 {
-    "code": 403,
-    "message": "Unauthorized",
-    "data": null
+  "code": 403,
+  "message": "Unauthorized",
+  "data": null
 }
 ```
 
@@ -499,23 +516,23 @@ curl -X DELETE '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-    "code": 200,
-    "message": "Transaction deleted successfully",
-    "data": null
+  "code": 200,
+  "message": "Transaction deleted successfully",
+  "data": null
 }
 
 成功响应：(200 OK)
 {
-    "code": 200,
-    "message": "Transaction deleted successfully",
-    "data": null
+  "code": 200,
+  "message": "Transaction deleted successfully",
+  "data": null
 }
 
 错误响应：(404 Not Found)
 {
-    "code": 404,
-    "message": "Transaction not found",
-    "data": null
+  "code": 404,
+  "message": "Transaction not found",
+  "data": null
 }
 ```
 
@@ -535,17 +552,17 @@ curl -X POST <baseUrl>/auth/login \
 
 # 成功响应示例：
 {
-    "code": 200,
-    "message": "Login successful",
-    "data": {
-        "token": "eyJhbGciOiJIUzI1NiIs...",
-        "user": {
-            "id": 1,
-            "username": "root",
-            "email": "root@example.com",
-            "role": "admin"
-        }
+  "code": 200,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "user": {
+      "id": 1,
+      "username": "root",
+      "email": "root@example.com",
+      "role": "admin"
     }
+  }
 }
 ```
 
@@ -558,18 +575,18 @@ curl -X GET <baseUrl>/users \
 
 # 成功响应示例：
 {
-    "code": 200,
-    "message": "Users retrieved successfully",
-    "data": [
-        {
-            "id": 1,
-            "username": "root",
-            "email": "root@example.com",
-            "role": "admin",
-            "created_at": "2025-02-17T11:00:00.000Z",
-            "updated_at": "2025-02-17T11:00:00.000Z"
-        }
-    ]
+  "code": 200,
+  "message": "Users retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "username": "root",
+      "email": "root@example.com",
+      "role": "admin",
+      "created_at": "2025-02-17T11:00:00.000Z",
+      "updated_at": "2025-02-17T11:00:00.000Z"
+    }
+  ]
 }
 
 # 更新用户信息
@@ -580,40 +597,40 @@ curl -X PUT <baseUrl>/users/2 \
 
 # 成功响应示例：
 {
-    "code": 200,
-    "message": "User updated successfully",
-    "data": null
+  "code": 200,
+  "message": "User updated successfully",
+  "data": null
 }
 ```
 
 ## 安全特性
 
 1. 密码安全
-   - 使用 bcryptjs 进行密码加密
-   - 数据库中只存储密码哈希
+  - 使用 bcryptjs 进行密码加密
+  - 数据库中只存储密码哈希
 
 2. 认证安全
-   - 使用 JWT 进行身份验证
-   - token 24小时过期机制
-   - 请求头 Bearer token 认证
+  - 使用 JWT 进行身份验证
+  - token 24小时过期机制
+  - 请求头 Bearer token 认证
 
 3. 授权控制
-   - 基于角色的访问控制（RBAC）
-   - 管理员特权操作保护
-   - root 用户删除保护
+  - 基于角色的访问控制（RBAC）
+  - 管理员特权操作保护
+  - root 用户删除保护
 
 4. 数据安全
-   - 用户名唯一性检查
-   - 邮箱格式验证
-   - SQL 注入防护
+  - 用户名唯一性检查
+  - 邮箱格式验证
+  - SQL 注入防护
 
 ## 开发建议
 
 1. 在生产环境中，请务必：
-   - 修改 JWT_SECRET
-   - 设置强密码策略
-   - 配置适当的 CORS 策略
-   - 启用 HTTPS
+  - 修改 JWT_SECRET
+  - 设置强密码策略
+  - 配置适当的 CORS 策略
+  - 启用 HTTPS
 
 2. 开发时可以使用 Postman 或类似工具测试 API
 
