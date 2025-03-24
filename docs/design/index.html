@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务与习惯追踪系统 - 设计文档</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f9c74f;
+            --danger-color: #f94144;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-color);
+            background-color: #f6f8fc;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .hero {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            margin-bottom: 60px;
+        }
+        
+        .hero h1 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 20px;
+        }
+        
+        .card-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .card-img-top {
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 10px 20px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .module-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 30px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 60px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                padding: 50px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-check2-circle me-2"></i>任务习惯管理系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">设计概览</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login-register.html">用户认证</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="task-management.html">任务管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="habit-tracking.html">习惯跟踪</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="notification.html">提醒通知</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="hero">
+        <div class="container text-center">
+            <h1>任务与习惯追踪系统设计</h1>
+            <p class="lead">专业的用户体验和界面设计，帮助用户高效管理任务与培养良好习惯</p>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <section class="container mb-5">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="mb-4">设计概览</h2>
+                <p class="lead">
+                    本设计文档展示了任务与习惯追踪系统的完整用户界面和交互设计。我们的设计理念是创建一个美观、现代化和用户友好的界面，
+                    帮助用户轻松管理日常任务并培养良好习惯。下面是系统的主要功能模块设计：
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 用户认证模块 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-circle module-icon"></i>
+                        <h3 class="card-title mb-3">用户认证</h3>
+                        <p class="card-text">直观的用户注册和登录流程，支持多种登录方式和安全的密码找回功能。</p>
+                        <a href="login-register.html" class="btn btn-primary">
+                            查看设计
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 任务管理模块 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-list-check module-icon"></i>
+                        <h3 class="card-title mb-3">任务管理</h3>
+                        <p class="card-text">强大而灵活的任务创建与管理功能，包括分类、标签、优先级和状态跟踪。</p>
+                        <a href="task-management.html" class="btn btn-primary">
+                            查看设计
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 习惯跟踪模块 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calendar-check module-icon"></i>
+                        <h3 class="card-title mb-3">习惯跟踪</h3>
+                        <p class="card-text">科学的习惯培养系统，包括习惯设定、完成记录和统计分析功能。</p>
+                        <a href="habit-tracking.html" class="btn btn-primary">
+                            查看设计
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 提醒通知模块 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bell module-icon"></i>
+                        <h3 class="card-title mb-3">提醒通知</h3>
+                        <p class="card-text">灵活的提醒与通知系统，支持多种提醒方式和自定义提醒规则。</p>
+                        <a href="notification.html" class="btn btn-primary">
+                            查看设计
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 设计原则部分 -->
+    <section class="container mb-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="text-center mb-4">设计原则</h2>
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center mb-4">
+                        <i class="bi bi-phone module-icon"></i>
+                        <h4>响应式设计</h4>
+                        <p>所有界面在不同设备上都能提供良好的用户体验</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <i class="bi bi-speedometer2 module-icon"></i>
+                        <h4>简单易用</h4>
+                        <p>操作流程简洁直观，降低学习成本</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <i class="bi bi-palette module-icon"></i>
+                        <h4>美观一致</h4>
+                        <p>视觉风格统一，界面元素协调美观</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 任务习惯管理系统 - 设计文档</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="index.html" class="text-decoration-none me-3">设计概览</a>
+                    <a href="login-register.html" class="text-decoration-none me-3">用户认证</a>
+                    <a href="task-management.html" class="text-decoration-none me-3">任务管理</a>
+                    <a href="habit-tracking.html" class="text-decoration-none me-3">习惯跟踪</a>
+                    <a href="notification.html" class="text-decoration-none">提醒通知</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

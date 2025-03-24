@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册与登录 - 设计文档</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f9c74f;
+            --danger-color: #f94144;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-color);
+            background-color: #f6f8fc;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .module-header {
+            padding: 50px 0;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .auth-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .auth-tabs {
+            background-color: #f8f9fa;
+            padding: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .auth-tabs .nav-link {
+            padding: 15px 30px;
+            font-weight: 600;
+            color: var(--dark-color);
+            border: none;
+            border-radius: 0;
+        }
+        
+        .auth-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: white;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .auth-form {
+            padding: 30px;
+        }
+        
+        .form-floating {
+            margin-bottom: 20px;
+        }
+        
+        .form-control {
+            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-auth {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-auth:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .social-login {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin: 0 10px;
+            font-size: 20px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-wechat {
+            background-color: #07C160;
+        }
+        
+        .btn-qq {
+            background-color: #12B7F5;
+        }
+        
+        .btn-weibo {
+            background-color: #E6162D;
+        }
+        
+        .feature-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 40px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 30px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 60px;
+        }
+        
+        @media (max-width: 768px) {
+            .auth-form {
+                padding: 20px;
+            }
+            
+            .module-header {
+                padding: 30px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-check2-circle me-2"></i>任务习惯管理系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">设计概览</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="login-register.html">用户认证</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="task-management.html">任务管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="habit-tracking.html">习惯跟踪</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="notification.html">提醒通知</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 模块标题 -->
+    <section class="module-header">
+        <div class="container text-center">
+            <h1>用户注册与登录</h1>
+            <p class="lead">简单便捷的账户创建与安全登录体验</p>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <section class="container mb-5">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">设计概述</h2>
+                <p>
+                    用户认证模块是系统的入口，提供直观、安全的注册和登录体验。设计注重简洁易用，同时保证账户安全。
+                    提供多种登录方式，满足不同用户的使用习惯，并设计了完善的密码找回流程。
+                </p>
+            </div>
+        </div>
+
+        <!-- 注册与登录界面展示 -->
+        <div class="row mb-5">
+            <div class="col-lg-6 mx-auto">
+                <div class="auth-card">
+                    <ul class="nav nav-tabs auth-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">登录</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">注册</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <!-- 登录表单 -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel">
+                            <div class="auth-form">
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com">
+                                    <label for="loginEmail">邮箱或手机号码</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="loginPassword" placeholder="密码">
+                                    <label for="loginPassword">密码</label>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">记住我</label>
+                                    </div>
+                                    <a href="#" class="text-decoration-none">忘记密码？</a>
+                                </div>
+                                <button class="btn btn-primary btn-auth">登录</button>
+                                
+                                <div class="social-login">
+                                    <p class="text-muted mb-3">或使用社交账号登录</p>
+                                    <a href="#" class="social-btn btn-wechat"><i class="bi bi-wechat"></i></a>
+                                    <a href="#" class="social-btn btn-qq"><i class="bi bi-chat-fill"></i></a>
+                                    <a href="#" class="social-btn btn-weibo"><i class="bi bi-sina-weibo"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 注册表单 -->
+                        <div class="tab-pane fade" id="register" role="tabpanel">
+                            <div class="auth-form">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="registerUsername" placeholder="用户名">
+                                    <label for="registerUsername">用户名</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com">
+                                    <label for="registerEmail">邮箱</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="tel" class="form-control" id="registerPhone" placeholder="手机号码">
+                                    <label for="registerPhone">手机号码</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="registerPassword" placeholder="密码">
+                                    <label for="registerPassword">密码</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="confirmPassword" placeholder="确认密码">
+                                    <label for="confirmPassword">确认密码</label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="agreeTerms">
+                                    <label class="form-check-label" for="agreeTerms">
+                                        我已阅读并同意 <a href="#" class="text-decoration-none">服务条款</a> 和 <a href="#" class="text-decoration-none">隐私政策</a>
+                                    </label>
+                                </div>
+                                <button class="btn btn-primary btn-auth">注册</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模块特点 -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">模块特点</h2>
+            </div>
+        </div>
+        
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="card-body">
+                        <div class="text-center">
+                            <i class="bi bi-shield-lock feature-icon"></i>
+                            <h4 class="mb-3">多种登录方式</h4>
+                        </div>
+                        <p>支持传统账号密码登录、手机验证码登录以及第三方账号快捷登录，满足不同用户的使用习惯。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="card-body">
+                        <div class="text-center">
+                            <i class="bi bi-unlock feature-icon"></i>
+                            <h4 class="mb-3">密码找回</h4>
+                        </div>
+                        <p>提供多种密码找回途径，包括邮箱验证、手机验证码及安全问题，确保用户能方便地恢复账号访问。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="card-body">
+                        <div class="text-center">
+                            <i class="bi bi-fingerprint feature-icon"></i>
+                            <h4 class="mb-3">安全保障</h4>
+                        </div>
+                        <p>采用先进的加密技术保护用户信息，支持双因素认证，增强账户安全性，防止未授权访问。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户流程 -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">用户流程</h2>
+                <p class="mb-4">用户在系统中的注册和登录流程设计为简单直观，减少障碍，提高转化率。</p>
+            </div>
+        </div>
+        
+        <div class="row mb-5">
+            <div class="col-md-3">
+                <div class="flow-step">
+                    <div class="step-number">1</div>
+                    <h5>选择登录方式</h5>
+                    <p>用户可选择账号密码、手机验证码或第三方账号登录</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="flow-step">
+                    <div class="step-number">2</div>
+                    <h5>输入验证信息</h5>
+                    <p>根据选择的登录方式输入相应信息</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="flow-step">
+                    <div class="step-number">3</div>
+                    <h5>系统验证</h5>
+                    <p>系统验证用户身份，通过则允许登录</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="flow-step">
+                    <div class="step-number">4</div>
+                    <h5>进入系统</h5>
+                    <p>登录成功后重定向到用户仪表盘</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 任务习惯管理系统 - 设计文档</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="index.html" class="text-decoration-none me-3">设计概览</a>
+                    <a href="login-register.html" class="text-decoration-none me-3">用户认证</a>
+                    <a href="task-management.html" class="text-decoration-none me-3">任务管理</a>
+                    <a href="habit-tracking.html" class="text-decoration-none me-3">习惯跟踪</a>
+                    <a href="notification.html" class="text-decoration-none">提醒通知</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务创建与管理 - 设计文档</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f9c74f;
+            --danger-color: #f94144;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-color);
+            background-color: #f6f8fc;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .module-header {
+            padding: 50px 0;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 40px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .footer {
+            background-color: white;
+            padding: 30px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 60px;
+        }
+        
+        .task-card {
+            cursor: pointer;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .task-high {
+            border-left-color: var(--danger-color);
+        }
+        
+        .task-medium {
+            border-left-color: var(--warning-color);
+        }
+        
+        .task-low {
+            border-left-color: var(--success-color);
+        }
+        
+        .task-category {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .category-work {
+            background-color: #e9f5ff;
+            color: #0072c6;
+        }
+        
+        .category-personal {
+            background-color: #f5e9ff;
+            color: #7b2cbf;
+        }
+        
+        .category-study {
+            background-color: #fff3e6;
+            color: #e67700;
+        }
+        
+        .status-badge {
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        
+        .status-pending {
+            background-color: #fff0f0;
+            color: #ff4d4f;
+        }
+        
+        .status-progress {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .status-completed {
+            background-color: #f6ffed;
+            color: #52c41a;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background-color: #f0f0f0;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--dark-color);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-icon:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .task-filter {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            white-space: nowrap;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active, .filter-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-check2-circle me-2"></i>任务习惯管理系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">设计概览</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login-register.html">用户认证</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="task-management.html">任务管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="habit-tracking.html">习惯跟踪</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="notification.html">提醒通知</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 模块标题 -->
+    <section class="module-header">
+        <div class="container text-center">
+            <h1>任务创建与管理</h1>
+            <p class="lead">高效创建、组织和跟踪您的任务</p>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <section class="container mb-5">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">设计概述</h2>
+                <p>
+                    任务管理模块是系统的核心功能之一，为用户提供创建、编辑、删除和查看待办事项的能力。
+                    设计注重直观的任务展示、灵活的分类系统和详细的任务状态跟踪，使用户能够轻松管理多个任务并保持高效率。
+                </p>
+            </div>
+        </div>
+
+        <!-- 任务管理界面展示 -->
+        <div class="row mb-5">
+            <div class="col-lg-10 mx-auto">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <!-- 侧边栏 -->
+                            <div class="col-md-3 border-end">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 class="mb-0">我的任务</h5>
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="bi bi-plus"></i> 新建
+                                        </button>
+                                    </div>
+                                    
+                                    <ul class="nav flex-column">
+                                        <li class="nav-item">
+                                            <a class="nav-link active d-flex justify-content-between align-items-center" href="#">
+                                                <span><i class="bi bi-inbox me-2"></i>全部任务</span>
+                                                <span class="badge bg-primary rounded-pill">12</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                <span><i class="bi bi-clock me-2"></i>今日任务</span>
+                                                <span class="badge bg-danger rounded-pill">5</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                <span><i class="bi bi-calendar-week me-2"></i>本周任务</span>
+                                                <span class="badge bg-warning rounded-pill">8</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                <span><i class="bi bi-check-circle me-2"></i>已完成</span>
+                                                <span class="badge bg-success rounded-pill">23</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    
+                                    <div class="mt-4">
+                                        <h6 class="fw-bold mb-2">分类</h6>
+                                        <ul class="nav flex-column">
+                                            <li class="nav-item">
+                                                <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                    <span><i class="bi bi-briefcase me-2"></i>工作</span>
+                                                    <span class="badge bg-primary rounded-pill">7</span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                    <span><i class="bi bi-book me-2"></i>学习</span>
+                                                    <span class="badge bg-primary rounded-pill">4</span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link d-flex justify-content-between align-items-center" href="#">
+                                                    <span><i class="bi bi-house me-2"></i>个人</span>
+                                                    <span class="badge bg-primary rounded-pill">3</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 主要内容区 -->
+                            <div class="col-md-9">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 class="mb-0">全部任务</h5>
+                                        <div>
+                                            <button class="btn btn-icon me-2">
+                                                <i class="bi bi-search"></i>
+                                            </button>
+                                            <button class="btn btn-icon me-2">
+                                                <i class="bi bi-sort-down"></i>
+                                            </button>
+                                            <button class="btn btn-icon">
+                                                <i class="bi bi-grid"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 任务筛选器 -->
+                                    <div class="task-filter">
+                                        <button class="filter-btn active">全部</button>
+                                        <button class="filter-btn">未开始</button>
+                                        <button class="filter-btn">进行中</button>
+                                        <button class="filter-btn">已完成</button>
+                                        <button class="filter-btn">高优先级</button>
+                                        <button class="filter-btn">今日到期</button>
+                                    </div>
+                                    
+                                    <!-- 任务列表 -->
+                                    <div class="task-list">
+                                        <!-- 高优先级任务 -->
+                                        <div class="card task-card task-high">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="card-title mb-1">准备项目提案演示</h6>
+                                                        <p class="card-text text-muted small mb-2">完成演示文稿并准备演讲稿...</p>
+                                                        <div>
+                                                            <span class="task-category category-work">工作</span>
+                                                            <span class="tag">演示</span>
+                                                            <span class="tag">提案</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="status-badge status-progress">进行中</span>
+                                                        <div class="small text-muted mt-1">今天 14:00</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 中优先级任务 -->
+                                        <div class="card task-card task-medium">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="card-title mb-1">阅读《有效学习方法》</h6>
+                                                        <p class="card-text text-muted small mb-2">阅读第3-5章并做笔记...</p>
+                                                        <div>
+                                                            <span class="task-category category-study">学习</span>
+                                                            <span class="tag">阅读</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="status-badge status-pending">未开始</span>
+                                                        <div class="small text-muted mt-1">明天 20:00</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 低优先级任务 -->
+                                        <div class="card task-card task-low">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="card-title mb-1">整理衣柜</h6>
+                                                        <p class="card-text text-muted small mb-2">整理冬季衣物并收纳...</p>
+                                                        <div>
+                                                            <span class="task-category category-personal">个人</span>
+                                                            <span class="tag">家务</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="status-badge status-completed">已完成</span>
+                                                        <div class="small text-muted mt-1">3天前</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能特点 -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">核心功能</h2>
+            </div>
+        </div>
+        
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-list-task feature-icon"></i>
+                        <h4 class="mb-3">详细任务设置</h4>
+                        <p>支持设置任务标题、详细描述、截止日期、优先级等属性，让任务管理更加精细和有序。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-tags feature-icon"></i>
+                        <h4 class="mb-3">分类与标签</h4>
+                        <p>通过分类和标签系统，轻松组织和查找相关任务，提高任务管理效率和可视化程度。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-kanban feature-icon"></i>
+                        <h4 class="mb-3">状态跟踪</h4>
+                        <p>直观的任务状态跟踪系统，包括未开始、进行中和已完成等状态，让进度一目了然。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 任务习惯管理系统 - 设计文档</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="index.html" class="text-decoration-none me-3">设计概览</a>
+                    <a href="login-register.html" class="text-decoration-none me-3">用户认证</a>
+                    <a href="task-management.html" class="text-decoration-none me-3">任务管理</a>
+                    <a href="habit-tracking.html" class="text-decoration-none me-3">习惯跟踪</a>
+                    <a href="notification.html" class="text-decoration-none">提醒通知</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
