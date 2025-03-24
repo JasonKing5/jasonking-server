@@ -31,13 +31,23 @@ jasonking-server/
 │   ├── config/             # 配置文件
 │   │   └── database.js     # 数据库配置
 │   ├── controllers/        # 控制器
-│   │   └── userController.js
+│   │   ├── userController.js   # 用户控制器
+│   │   ├── transactionController.js # 交易控制器
+│   │   ├── taskController.js   # 任务控制器
+│   │   └── habitController.js  # 习惯控制器
 │   ├── middleware/         # 中间件
 │   │   └── auth.js        # 认证中间件
 │   ├── models/            # 数据模型
-│   │   └── user.js       # 用户模型
+│   │   ├── user.js       # 用户模型
+│   │   ├── transaction.js # 交易模型
+│   │   ├── task.js       # 任务模型
+│   │   └── habit.js      # 习惯模型
 │   └── routes/           # 路由
-│       └── userRoutes.js # 用户路由
+│       ├── userRoutes.js # 用户路由
+│       ├── authRoutes.js # 认证路由
+│       ├── transactionRoutes.js # 交易路由
+│       ├── taskRoutes.js # 任务路由
+│       └── habitRoutes.js # 习惯路由
 ├── scripts/              # 脚本文件
 │   └── init-db.js       # 数据库初始化脚本
 ├── .env                # 环境变量配置
@@ -145,6 +155,58 @@ CREATE INDEX idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX idx_tasks_status ON tasks(status);
 CREATE INDEX idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX idx_tasks_priority ON tasks(priority);
+```
+
+### 习惯表
+
+```sql
+CREATE TABLE IF NOT EXISTS habits (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  frequency ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL DEFAULT 'daily',
+  frequency_config JSON,
+  reminder_time TIME,
+  start_date DATE NOT NULL,
+  end_date DATE,
+  color VARCHAR(20),
+  icon VARCHAR(50),
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 添加索引以提高查询性能
+CREATE INDEX idx_habits_user_id ON habits(user_id);
+CREATE INDEX idx_habits_frequency ON habits(frequency);
+CREATE INDEX idx_habits_start_date ON habits(start_date);
+CREATE INDEX idx_habits_is_active ON habits(is_active);
+```
+
+### 习惯日志表
+
+```sql
+CREATE TABLE IF NOT EXISTS habit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  habit_id INT NOT NULL,
+  user_id INT NOT NULL,
+  date DATE NOT NULL,
+  status ENUM('completed', 'skipped', 'missed') NOT NULL DEFAULT 'completed',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_habit_date (habit_id, date)
+);
+
+-- 添加索引以提高查询性能
+CREATE INDEX idx_habit_logs_habit_id ON habit_logs(habit_id);
+CREATE INDEX idx_habit_logs_user_id ON habit_logs(user_id);
+CREATE INDEX idx_habit_logs_date ON habit_logs(date);
+CREATE INDEX idx_habit_logs_status ON habit_logs(status);
 ```
 
 ## API 文档
@@ -842,6 +904,409 @@ curl -X PATCH '<baseUrl>/tasks/bulk/status' \
   "data": {
     "affected_rows": 3
   }
+}
+```
+
+### 4. 习惯跟踪
+
+#### 创建习惯
+
+```
+POST /api/habits
+
+curl -X POST '<baseUrl>/habits' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "每日阅读",
+    "description": "每天阅读30分钟",
+    "frequency": "daily",
+    "reminder_time": "20:00:00",
+    "start_date": "2025-03-24",
+    "color": "#4287f5",
+    "icon": "book"
+  }'
+
+请求体：
+{
+  "name": "string",             // 必填，习惯名称
+  "description": "string",      // 可选，习惯描述
+  "frequency": "string",        // 可选，频率（daily/weekly/monthly/custom，默认daily）
+  "frequency_config": object,   // 可选，自定义频率配置（JSON格式）
+  "reminder_time": "string",    // 可选，提醒时间（HH:MM:SS）
+  "start_date": "string",       // 可选，开始日期（YYYY-MM-DD，默认当天）
+  "end_date": "string",         // 可选，结束日期（YYYY-MM-DD）
+  "color": "string",            // 可选，颜色代码
+  "icon": "string",             // 可选，图标名称
+  "is_active": boolean          // 可选，是否激活（默认true）
+}
+
+成功响应：(201 Created)
+{
+  "code": 201,
+  "message": "习惯创建成功",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "name": "string",
+    "description": "string",
+    "frequency": "string",
+    "frequency_config": object,
+    "reminder_time": "string",
+    "start_date": "string",
+    "end_date": "string",
+    "color": "string",
+    "icon": "string",
+    "is_active": boolean,
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+
+错误响应：(400 Bad Request)
+{
+  "code": 400,
+  "message": "习惯名称不能为空",
+  "data": null
+}
+```
+
+#### 获取习惯列表
+
+```
+GET /api/habits
+
+curl -X GET '<baseUrl>/habits?frequency=daily&is_active=true' \
+  -H 'Authorization: Bearer <token>'
+
+查询参数：
+- frequency: 频率过滤（daily/weekly/monthly/custom）
+- is_active: 是否激活过滤（true/false）
+- start_date_after: 开始日期过滤（大于等于指定日期）
+- start_date_before: 开始日期过滤（小于等于指定日期）
+- sort_by: 排序字段（默认created_at）
+- sort_order: 排序方向（ASC/DESC，默认DESC）
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "获取习惯列表成功",
+  "data": [
+    {
+      "id": number,
+      "user_id": number,
+      "name": "string",
+      "description": "string",
+      "frequency": "string",
+      "frequency_config": object,
+      "reminder_time": "string",
+      "start_date": "string",
+      "end_date": "string",
+      "color": "string",
+      "icon": "string",
+      "is_active": boolean,
+      "created_at": "string",
+      "updated_at": "string"
+    }
+  ]
+}
+```
+
+#### 获取习惯详情
+
+```
+GET /api/habits/:id
+
+curl -X GET '<baseUrl>/habits/1' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "获取习惯详情成功",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "name": "string",
+    "description": "string",
+    "frequency": "string",
+    "frequency_config": object,
+    "reminder_time": "string",
+    "start_date": "string",
+    "end_date": "string",
+    "color": "string",
+    "icon": "string",
+    "is_active": boolean,
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "未找到该习惯",
+  "data": null
+}
+```
+
+#### 更新习惯
+
+```
+PUT /api/habits/:id
+
+curl -X PUT '<baseUrl>/habits/1' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "每日阅读更新",
+    "description": "每天阅读45分钟",
+    "reminder_time": "19:30:00"
+  }'
+
+请求体：
+{
+  "name": "string",             // 可选
+  "description": "string",      // 可选
+  "frequency": "string",        // 可选
+  "frequency_config": object,   // 可选
+  "reminder_time": "string",    // 可选
+  "start_date": "string",       // 可选
+  "end_date": "string",         // 可选
+  "color": "string",            // 可选
+  "icon": "string",             // 可选
+  "is_active": boolean          // 可选
+}
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "习惯更新成功",
+  "data": {
+    "id": number,
+    "user_id": number,
+    "name": "string",
+    "description": "string",
+    "frequency": "string",
+    "frequency_config": object,
+    "reminder_time": "string",
+    "start_date": "string",
+    "end_date": "string",
+    "color": "string",
+    "icon": "string",
+    "is_active": boolean,
+    "created_at": "string",
+    "updated_at": "string"
+  }
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "未找到该习惯",
+  "data": null
+}
+```
+
+#### 删除习惯
+
+```
+DELETE /api/habits/:id
+
+curl -X DELETE '<baseUrl>/habits/1' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "习惯删除成功",
+  "data": null
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "未找到该习惯",
+  "data": null
+}
+```
+
+#### 记录习惯完成情况
+
+```
+POST /api/habits/:id/logs
+
+curl -X POST '<baseUrl>/habits/1/logs' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "date": "2025-03-24",
+    "status": "completed",
+    "notes": "完成了45分钟阅读"
+  }'
+
+请求体：
+{
+  "date": "string",       // 可选，日期（YYYY-MM-DD，默认当天）
+  "status": "string",     // 可选，状态（completed/skipped/missed，默认completed）
+  "notes": "string"       // 可选，备注
+}
+
+成功响应：(201 Created)
+{
+  "code": 201,
+  "message": "习惯记录成功",
+  "data": {
+    "id": number,
+    "habit_id": number,
+    "user_id": number,
+    "date": "string",
+    "status": "string",
+    "notes": "string"
+  }
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "未找到该习惯",
+  "data": null
+}
+```
+
+#### 获取习惯日志
+
+```
+GET /api/habits/:id/logs
+
+curl -X GET '<baseUrl>/habits/1/logs?status=completed&date_after=2025-03-01' \
+  -H 'Authorization: Bearer <token>'
+
+查询参数：
+- status: 状态过滤（completed/skipped/missed）
+- date_after: 日期过滤（大于等于指定日期）
+- date_before: 日期过滤（小于等于指定日期）
+- sort_by: 排序字段（默认date）
+- sort_order: 排序方向（ASC/DESC，默认DESC）
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "获取习惯日志成功",
+  "data": [
+    {
+      "id": number,
+      "habit_id": number,
+      "user_id": number,
+      "date": "string",
+      "status": "string",
+      "notes": "string",
+      "created_at": "string",
+      "updated_at": "string"
+    }
+  ]
+}
+```
+
+#### 获取所有习惯日志
+
+```
+GET /api/habits/logs/all
+
+curl -X GET '<baseUrl>/habits/logs/all?date_after=2025-03-01&habit_id=1' \
+  -H 'Authorization: Bearer <token>'
+
+查询参数：
+- status: 状态过滤（completed/skipped/missed）
+- date_after: 日期过滤（大于等于指定日期）
+- date_before: 日期过滤（小于等于指定日期）
+- habit_id: 习惯ID过滤
+- sort_by: 排序字段（默认date）
+- sort_order: 排序方向（ASC/DESC，默认DESC）
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "获取所有习惯日志成功",
+  "data": [
+    {
+      "id": number,
+      "habit_id": number,
+      "user_id": number,
+      "date": "string",
+      "status": "string",
+      "notes": "string",
+      "created_at": "string",
+      "updated_at": "string",
+      "habit_name": "string",
+      "frequency": "string"
+    }
+  ]
+}
+```
+
+#### 获取习惯统计数据
+
+```
+GET /api/habits/stats/summary
+
+curl -X GET '<baseUrl>/habits/stats/summary?date_after=2025-03-01&date_before=2025-03-31' \
+  -H 'Authorization: Bearer <token>'
+
+查询参数：
+- date_after: 日期过滤（大于等于指定日期）
+- date_before: 日期过滤（小于等于指定日期）
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "获取习惯统计成功",
+  "data": {
+    "overall": {
+      "total_habits": number,
+      "total_logs": number,
+      "completed_count": number,
+      "skipped_count": number,
+      "missed_count": number
+    },
+    "by_frequency": [
+      {
+        "frequency": "string",
+        "habits_count": number,
+        "completed_count": number
+      }
+    ],
+    "by_date": [
+      {
+        "date": "string",
+        "total_logs": number,
+        "completed_count": number
+      }
+    ]
+  }
+}
+```
+
+#### 删除习惯日志
+
+```
+DELETE /api/habits/logs/:logId
+
+curl -X DELETE '<baseUrl>/habits/logs/1' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "习惯日志删除成功",
+  "data": null
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "日志不存在或无权删除",
+  "data": null
 }
 ```
 

@@ -62,11 +62,130 @@ async function initializeDatabase() {
       );
     `);
 
+    // 创建习惯表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS habits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        frequency ENUM('daily', 'weekly', 'monthly', 'custom') NOT NULL DEFAULT 'daily',
+        frequency_config JSON,
+        reminder_time TIME,
+        start_date DATE NOT NULL,
+        end_date DATE,
+        color VARCHAR(20),
+        icon VARCHAR(50),
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    // 创建习惯日志表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS habit_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        habit_id INT NOT NULL,
+        user_id INT NOT NULL,
+        date DATE NOT NULL,
+        status ENUM('completed', 'skipped', 'missed') NOT NULL DEFAULT 'completed',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (habit_id) REFERENCES habits(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_habit_date (habit_id, date)
+      );
+    `);
+
     // 添加索引以提高查询性能
-    await connection.query(`CREATE INDEX idx_tasks_user_id ON tasks(user_id)`);
-    await connection.query(`CREATE INDEX idx_tasks_status ON tasks(status)`);
-    await connection.query(`CREATE INDEX idx_tasks_due_date ON tasks(due_date)`);
-    await connection.query(`CREATE INDEX idx_tasks_priority ON tasks(priority)`);
+    try {
+      await connection.query(`CREATE INDEX idx_tasks_user_id ON tasks(user_id)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_tasks_user_id 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_tasks_status ON tasks(status)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_tasks_status 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_tasks_due_date ON tasks(due_date)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_tasks_due_date 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_tasks_priority ON tasks(priority)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_tasks_priority 已存在，跳过创建');
+    }
+
+    // 添加习惯表的索引以提高查询性能
+    try {
+      await connection.query(`CREATE INDEX idx_habits_user_id ON habits(user_id)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habits_user_id 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habits_frequency ON habits(frequency)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habits_frequency 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habits_start_date ON habits(start_date)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habits_start_date 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habits_is_active ON habits(is_active)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habits_is_active 已存在，跳过创建');
+    }
+
+    // 添加习惯日志表的索引以提高查询性能
+    try {
+      await connection.query(`CREATE INDEX idx_habit_logs_habit_id ON habit_logs(habit_id)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habit_logs_habit_id 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habit_logs_user_id ON habit_logs(user_id)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habit_logs_user_id 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habit_logs_date ON habit_logs(date)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habit_logs_date 已存在，跳过创建');
+    }
+    
+    try {
+      await connection.query(`CREATE INDEX idx_habit_logs_status ON habit_logs(status)`);
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME') throw err;
+      console.log('索引 idx_habit_logs_status 已存在，跳过创建');
+    }
 
     // Check if root user exists
     const [rows] = await connection.query(
