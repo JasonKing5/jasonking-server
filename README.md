@@ -121,6 +121,32 @@ CREATE TABLE IF NOT EXISTS transactions (
   )
 ```
 
+### 任务表
+
+```sql
+-- 创建任务表
+CREATE TABLE IF NOT EXISTS tasks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  due_date DATETIME,
+  priority ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
+  status ENUM('not_started', 'in_progress', 'completed') NOT NULL DEFAULT 'not_started',
+  category VARCHAR(50),
+  tags JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 添加索引以提高查询性能
+CREATE INDEX idx_tasks_user_id ON tasks(user_id);
+CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_due_date ON tasks(due_date);
+CREATE INDEX idx_tasks_priority ON tasks(priority);
+```
+
 ## API 文档
 
 ### 统一响应格式
@@ -305,7 +331,6 @@ DELETE /api/users/:id
 
 curl -X DELETE '<baseUrl>/users/2' \
   -H 'Authorization: Bearer <token>'
-
 
 成功响应：(200 OK)
 {
@@ -567,19 +592,272 @@ curl -X DELETE '<baseUrl>/transactions/1' \
 }
 ```
 
+### 3. 任务管理
+
+#### 创建任务
+
+```
+POST /api/tasks
+
+curl -X POST '<baseUrl>/tasks' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "完成项目报告",
+    "description": "包括市场分析部分",
+    "due_date": "2025-04-01T10:00:00Z",
+    "priority": "high",
+    "category": "工作",
+    "tags": ["报告", "市场分析"]
+  }'
+
+请求体：
+{
+  "title": "完成项目报告",         // 必填，任务标题
+  "description": "包括市场分析部分",  // 可选，任务描述
+  "due_date": "2025-04-01T10:00:00Z", // 可选，截止日期
+  "priority": "high",            // 可选，优先级(low/medium/high)，默认medium
+  "status": "not_started",       // 可选，状态(not_started/in_progress/completed)，默认not_started
+  "category": "工作",            // 可选，任务类别
+  "tags": ["报告", "市场分析"]     // 可选，任务标签
+}
+
+成功响应：(201 Created)
+{
+  "code": 201,
+  "message": "任务创建成功",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "title": "完成项目报告",
+    "description": "包括市场分析部分",
+    "due_date": "2025-04-01T10:00:00Z",
+    "priority": "high",
+    "status": "not_started",
+    "category": "工作",
+    "tags": ["报告", "市场分析"]
+  }
+}
+```
+
+#### 获取用户所有任务
+
+```
+GET /api/tasks?status=in_progress&priority=high&sort_by=due_date&sort_order=ASC
+
+curl -X GET '<baseUrl>/tasks?status=in_progress&priority=high&sort_by=due_date&sort_order=ASC' \
+  -H 'Authorization: Bearer <token>'
+
+支持的过滤参数：
+- status: 按状态过滤(not_started/in_progress/completed)
+- priority: 按优先级过滤(low/medium/high)
+- category: 按类别过滤
+- due_date_before: 筛选在指定日期之前到期的任务
+- due_date_after: 筛选在指定日期之后到期的任务
+- sort_by: 排序字段(如created_at, due_date, priority等)
+- sort_order: 排序方向(ASC/DESC)
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "任务获取成功",
+  "data": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "完成项目报告",
+      "description": "包括市场分析部分",
+      "due_date": "2025-04-01T10:00:00Z",
+      "priority": "high",
+      "status": "in_progress",
+      "category": "工作",
+      "tags": ["报告", "市场分析"],
+      "created_at": "2025-03-24T12:00:00Z",
+      "updated_at": "2025-03-24T12:00:00Z"
+    }
+  ]
+}
+```
+
+#### 获取任务详情
+
+```
+GET /api/tasks/:id
+
+curl -X GET '<baseUrl>/tasks/1' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "任务获取成功",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "title": "完成项目报告",
+    "description": "包括市场分析部分",
+    "due_date": "2025-04-01T10:00:00Z",
+    "priority": "high",
+    "status": "in_progress",
+    "category": "工作",
+    "tags": ["报告", "市场分析"],
+    "created_at": "2025-03-24T12:00:00Z",
+    "updated_at": "2025-03-24T12:00:00Z"
+  }
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "任务不存在或无权访问",
+  "data": null
+}
+```
+
+#### 更新任务
+
+```
+PUT /api/tasks/:id
+
+curl -X PUT '<baseUrl>/tasks/1' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "更新后的项目报告",
+    "description": "更新后的描述",
+    "status": "in_progress",
+    "priority": "medium",
+    "due_date": "2025-04-10T10:00:00Z"
+  }'
+
+请求体：
+{
+  "title": "更新后的项目报告",       // 可选，更新任务标题
+  "description": "更新后的描述",     // 可选，更新任务描述
+  "due_date": "2025-04-10T10:00:00Z", // 可选，更新截止日期
+  "priority": "medium",           // 可选，更新优先级
+  "status": "in_progress",        // 可选，更新状态
+  "category": "个人",             // 可选，更新任务类别
+  "tags": ["报告", "修订"]         // 可选，更新任务标签
+}
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "任务更新成功",
+  "data": {
+    "id": 1,
+    "user_id": 1,
+    "title": "更新后的项目报告",
+    "description": "更新后的描述",
+    "due_date": "2025-04-10T10:00:00Z",
+    "priority": "medium",
+    "status": "in_progress",
+    "category": "个人",
+    "tags": ["报告", "修订"],
+    "created_at": "2025-03-24T12:00:00Z",
+    "updated_at": "2025-03-24T13:15:22Z"
+  }
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "任务不存在或无权访问",
+  "data": null
+}
+```
+
+#### 删除任务
+
+```
+DELETE /api/tasks/:id
+
+curl -X DELETE '<baseUrl>/tasks/1' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "任务删除成功",
+  "data": null
+}
+
+错误响应：(404 Not Found)
+{
+  "code": 404,
+  "message": "任务不存在或无权访问",
+  "data": null
+}
+```
+
+#### 获取任务统计
+
+```
+GET /api/tasks/stats/overview
+
+curl -X GET '<baseUrl>/tasks/stats/overview' \
+  -H 'Authorization: Bearer <token>'
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "统计数据获取成功",
+  "data": {
+    "total": 10,
+    "not_started": 3,
+    "in_progress": 5,
+    "completed": 2,
+    "low_priority": 2,
+    "medium_priority": 5,
+    "high_priority": 3,
+    "overdue": 1
+  }
+}
+```
+
+#### 批量更新任务状态
+
+```
+PATCH /api/tasks/bulk/status
+
+curl -X PATCH '<baseUrl>/tasks/bulk/status' \
+  -H 'Authorization: Bearer <token>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "task_ids": [1, 2, 3],
+    "status": "completed"
+  }'
+
+请求体：
+{
+  "task_ids": [1, 2, 3],         // 必填，任务ID数组
+  "status": "completed"           // 必填，新状态
+}
+
+成功响应：(200 OK)
+{
+  "code": 200,
+  "message": "批量更新成功",
+  "data": {
+    "affected_rows": 3
+  }
+}
+```
+
 ## 使用示例
 
 ### 1. 初始化后的默认管理员账户
 ```bash
 username: root
-password: root123
+password: 123456
 ```
 
 ### 2. 登录示例
 ```bash
 curl -X POST <baseUrl>/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username":"root","password":"root123"}'
+  -d '{"username":"root","password":"123456"}'
 
 # 成功响应示例：
 {

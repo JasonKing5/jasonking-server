@@ -44,6 +44,30 @@ async function initializeDatabase() {
       )
     `);
 
+    // 创建任务表
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        description TEXT,
+        due_date DATETIME,
+        priority ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
+        status ENUM('not_started', 'in_progress', 'completed') NOT NULL DEFAULT 'not_started',
+        category VARCHAR(50),
+        tags JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    // 添加索引以提高查询性能
+    await connection.query(`CREATE INDEX idx_tasks_user_id ON tasks(user_id)`);
+    await connection.query(`CREATE INDEX idx_tasks_status ON tasks(status)`);
+    await connection.query(`CREATE INDEX idx_tasks_due_date ON tasks(due_date)`);
+    await connection.query(`CREATE INDEX idx_tasks_priority ON tasks(priority)`);
+
     // Check if root user exists
     const [rows] = await connection.query(
       'SELECT * FROM users WHERE username = ?',
