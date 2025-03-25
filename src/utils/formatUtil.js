@@ -70,10 +70,37 @@ const parseConfig = (jsonConfig) => {
   }
 };
 
+/**
+ * 将tags对象转换为JSON字符串
+ * @param {Object} tags - tags对象
+ * @returns {String|null} JSON字符串或null
+ */
+const formatTags = (tags) => {
+  if (!tags) return null;
+  return JSON.stringify(tags);
+};
+
+/**
+ * 将JSON字符串转换为tags对象
+ * @param {String} tagsJson - JSON字符串
+ * @returns {Array} tags对象
+ */
+const parseTags = (tagsJson) => {
+  if (!tagsJson) return [];
+  try {
+    return JSON.parse(tagsJson);
+  } catch (error) {
+    console.error('Error parsing tags JSON:', error);
+    return [];
+  }
+};
+
 module.exports = {
   formatDate,
   formatDateTime,
   formatTime,
   formatConfig,
-  parseConfig
+  parseConfig,
+  formatTags,
+  parseTags
 };

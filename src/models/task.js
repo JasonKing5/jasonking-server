@@ -1,36 +1,8 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../config/database');
+const { formatDate, formatTags, parseTags } = require('../utils/formatUtil');
 
 const pool = mysql.createPool(dbConfig);
-
-// 将tags对象转换为JSON字符串
-const formatTags = (tags) => {
-  if (!tags) return null;
-  return JSON.stringify(tags);
-};
-
-// 将JSON字符串转换为tags对象
-const parseTags = (tagsJson) => {
-  if (!tagsJson) return [];
-  try {
-    return JSON.parse(tagsJson);
-  } catch (error) {
-    console.error('Error parsing tags JSON:', error);
-    return [];
-  }
-};
-
-// 格式化日期为 MySQL datetime 格式
-const formatDate = (date) => {
-  if (!date) return null;
-  if (typeof date === 'string') {
-    // 将 ISO 字符串转换为 Date 对象
-    date = new Date(date);
-  }
-  
-  // 格式化为MySQL datetime格式: YYYY-MM-DD HH:MM:SS
-  return date.toISOString().slice(0, 19).replace('T', ' ');
-};
 
 // 创建任务
 const create = async (taskData) => {

@@ -1,17 +1,8 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../config/database');
+const { formatDate } = require('../utils/formatUtil');
 
 const pool = mysql.createPool(dbConfig);
-
-// 格式化日期为 MySQL datetime 格式
-const formatDate = (date) => {
-    if (!date) return new Date();
-    if (typeof date === 'string') {
-        // 将 ISO 字符串转换为 Date 对象
-        date = new Date(date);
-    }
-    return date;
-};
 
 const create = async (userId, { amount, type, category, description, date }) => {
     const [result] = await pool.execute(

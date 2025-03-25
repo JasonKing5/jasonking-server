@@ -1,42 +1,8 @@
 const mysql = require('mysql2/promise');
 const dbConfig = require('../config/database');
+const { formatDate, formatTime, formatConfig, parseConfig } = require('../utils/formatUtil');
 
 const pool = mysql.createPool(dbConfig);
-
-// 格式化日期为 MySQL date 格式
-const formatDate = (date) => {
-  if (!date) return null;
-  if (typeof date === 'string') {
-    // 将 ISO 字符串转换为 Date 对象
-    date = new Date(date);
-  }
-  
-  // 格式化为 MySQL date 格式: YYYY-MM-DD
-  return date.toISOString().slice(0, 10);
-};
-
-// 格式化时间为 MySQL time 格式
-const formatTime = (time) => {
-  if (!time) return null;
-  return time;
-};
-
-// 格式化 JSON 配置
-const formatConfig = (config) => {
-  if (!config) return null;
-  return JSON.stringify(config);
-};
-
-// 解析 JSON 配置
-const parseConfig = (jsonConfig) => {
-  if (!jsonConfig) return null;
-  try {
-    return JSON.parse(jsonConfig);
-  } catch (error) {
-    console.error('Error parsing JSON config:', error);
-    return null;
-  }
-};
 
 // 创建习惯
 const create = async (habitData) => {
