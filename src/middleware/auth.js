@@ -1,15 +1,12 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { response } = require('../utils/responseUtil');
 
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        code: 401,
-        message: 'Authentication required',
-        data: null
-      });
+      return response(res, 401, '需要身份验证');
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -24,30 +21,18 @@ const auth = async (req, res, next) => {
     req.token = token;
     next();
   } catch (error) {
-    res.status(401).json({
-      code: 401,
-      message: 'Invalid token',
-      data: null
-    });
+    return response(res, 401, '无效的令牌');
   }
 };
 
 const adminAuth = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({
-        code: 403,
-        message: 'Admin access required',
-        data: null
-      });
+      return response(res, 403, '需要管理员权限');
     }
     next();
   } catch (error) {
-    res.status(403).json({
-      code: 403,
-      message: 'Unauthorized access',
-      data: null
-    });
+    return response(res, 500, '服务器错误');
   }
 };
 

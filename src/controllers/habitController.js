@@ -1,13 +1,5 @@
 const habit = require('../models/habit');
-
-// 统一响应格式
-const response = (res, code, message, data = null) => {
-  return res.status(Math.floor(code / 100) * 100).json({
-    code,
-    message,
-    data
-  });
-};
+const { response } = require('../utils/responseUtil');
 
 // 创建新习惯
 const createHabit = async (req, res) => {

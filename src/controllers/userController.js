@@ -1,130 +1,94 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { response } = require('../utils/responseUtil');
 
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll();
     
-    res.json({
-      code: 200,
-      message: 'Users retrieved successfully',
-      data: users.map(user => ({
-        ...user,
-        password: undefined
-      }))
-    });
+    return response(res, 200, '获取用户列表成功', users.map(user => ({
+      ...user,
+      password: undefined
+    })));
   } catch (error) {
-    res.status(500).json({
-      code: 500,
-      message: 'Server error',
-      data: null
-    });
+    return response(res, 500, '服务器错误');
+  }
+};
+
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return response(res, 404, '用户不存在');
+    }
+    
+    const { password, ...userWithoutPassword } = user;
+    return response(res, 200, '获取用户信息成功', userWithoutPassword);
+  } catch (error) {
+    return response(res, 500, '服务器错误');
   }
 };
 
 const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { username, email, role } = req.body;
-
-    // Check if user exists
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: 'User not found',
-        data: null
-      });
+    // 确保用户只能更新自己的信息
+    if (req.user.id !== parseInt(req.params.id)) {
+      return response(res, 403, '无权修改其他用户信息');
     }
-
-    // Only admin can modify role
-    if (role && req.user.role !== 'admin') {
-      return res.status(403).json({
-        code: 403,
-        message: 'Only admin can modify user role',
-        data: null
-      });
+    
+    const { username, email, password } = req.body;
+    
+    // 准备更新数据
+    const userData = {};
+    if (username) userData.username = username;
+    if (email) userData.email = email;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      userData.password = await bcrypt.hash(password, salt);
     }
-
-    // Only admin or the user themselves can update their info
-    if (req.user.role !== 'admin' && req.user.id !== Number.parseInt(id)) {
-      return res.status(403).json({
-        code: 403,
-        message: 'Unauthorized access',
-        data: null
-      });
+    
+    const updatedUser = await User.update(req.params.id, userData);
+    
+    if (!updatedUser) {
+      return response(res, 404, '用户不存在');
     }
-
-    const success = await User.update(id, {
-      username: username || user.username,
-      email: email || user.email,
-      role: role || user.role
-    });
-
-    if (success) {
-      res.json({
-        code: 200,
-        message: 'User updated successfully',
-        data: null
-      });
-    } else {
-      throw new Error('Update failed');
-    }
+    
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    return response(res, 200, '用户信息更新成功', userWithoutPassword);
   } catch (error) {
-    res.status(500).json({
-      code: 500,
-      message: 'Server error',
-      data: null
-    });
+    return response(res, 500, '服务器错误', { error: error.message });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    // Check if user exists
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({
-        code: 404,
-        message: 'User not found',
-        data: null
-      });
+    // 确保用户只能删除自己的账号
+    if (req.user.id !== parseInt(req.params.id)) {
+      return response(res, 403, '无权删除其他用户账号');
     }
-
-    // Prevent deletion of root user
-    if (user.username === 'root') {
-      return res.status(403).json({
-        code: 403,
-        message: 'Cannot delete root user',
-        data: null
-      });
+    
+    // 特殊保护：不允许删除root用户
+    if (req.user.username === 'root') {
+      return response(res, 403, '不允许删除root用户');
     }
-
-    const success = await User.delete(id);
-
-    if (success) {
-      res.json({
-        code: 200,
-        message: 'User deleted successfully',
-        data: null
-      });
-    } else {
-      throw new Error('Delete failed');
+    
+    const deleted = await User.delete(req.params.id);
+    
+    if (!deleted) {
+      return response(res, 404, '用户不存在');
     }
+    
+    return response(res, 200, '用户删除成功');
   } catch (error) {
-    res.status(500).json({
-      code: 500,
-      message: 'Server error',
-      data: null
-    });
+    return response(res, 500, '服务器错误');
   }
 };
 
 module.exports = {
   getAllUsers,
+  getUserById,
   updateUser,
   deleteUser
 };

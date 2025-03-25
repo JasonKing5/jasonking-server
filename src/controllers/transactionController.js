@@ -1,144 +1,117 @@
 const Transaction = require('../models/transaction');
 const { validateTransaction } = require('../utils/validators');
+const { response } = require('../utils/responseUtil');
 
 // 创建交易记录
 const create = async (req, res) => {
     try {
         const { error } = validateTransaction(req.body);
         if (error) {
-            return res.status(400).json({
-                code: 400,
-                message: error.details[0].message,
-                data: null
-            });
+            return response(res, 400, error.details[0].message);
         }
 
         const userId = req.user.id;
         const transactionId = await Transaction.create(userId, req.body);
         const transaction = await Transaction.findById(transactionId, userId);
 
-        res.status(201).json({
-            code: 201,
-            message: 'Transaction created successfully',
-            data: transaction
-        });
-    } catch (err) {
-        console.error('Error creating transaction:', err);
-        res.status(500).json({
-            code: 500,
-            message: 'Internal server error',
-            data: null
-        });
+        return response(res, 201, '交易记录创建成功', transaction);
+    } catch (error) {
+        console.error('创建交易记录出错:', error);
+        return response(res, 500, '创建交易记录时发生错误', { error: error.message });
     }
 };
 
-// 获取用户所有交易记录
+// 获取所有交易记录
 const getAll = async (req, res) => {
     try {
-        const transactions = await Transaction.findAll(req.user.id);
-        res.json({
-            code: 200,
-            message: 'Transactions retrieved successfully',
-            data: transactions
-        });
-    } catch (err) {
-        console.error('Error retrieving transactions:', err);
-        res.status(500).json({
-            code: 500,
-            message: 'Internal server error',
-            data: null
-        });
+        const userId = req.user.id;
+        const { type, category, date_from, date_to, sort_by, sort_order } = req.query;
+        
+        const filters = {};
+        if (type) filters.type = type;
+        if (category) filters.category = category;
+        if (date_from || date_to) {
+            filters.date = {};
+            if (date_from) filters.date.from = date_from;
+            if (date_to) filters.date.to = date_to;
+        }
+        
+        const transactions = await Transaction.findAll(userId, filters, sort_by, sort_order);
+        
+        return response(res, 200, '获取交易记录成功', transactions);
+    } catch (error) {
+        console.error('获取交易记录出错:', error);
+        return response(res, 500, '获取交易记录时发生错误', { error: error.message });
     }
 };
 
-// 获取特定交易记录
+// 获取单个交易记录
 const getOne = async (req, res) => {
     try {
-        const transaction = await Transaction.findById(req.params.id, req.user.id);
+        const userId = req.user.id;
+        const transactionId = req.params.id;
+        
+        const transaction = await Transaction.findById(transactionId, userId);
+        
         if (!transaction) {
-            return res.status(404).json({
-                code: 404,
-                message: 'Transaction not found',
-                data: null
-            });
+            return response(res, 404, '交易记录不存在');
         }
-
-        res.json({
-            code: 200,
-            message: 'Transaction retrieved successfully',
-            data: transaction
-        });
-    } catch (err) {
-        console.error('Error retrieving transaction:', err);
-        res.status(500).json({
-            code: 500,
-            message: 'Internal server error',
-            data: null
-        });
+        
+        return response(res, 200, '获取交易记录成功', transaction);
+    } catch (error) {
+        console.error('获取交易记录出错:', error);
+        return response(res, 500, '获取交易记录时发生错误', { error: error.message });
     }
 };
 
 // 更新交易记录
 const update = async (req, res) => {
     try {
+        const userId = req.user.id;
+        const transactionId = req.params.id;
+        
+        // 验证交易记录是否存在
+        const existingTransaction = await Transaction.findById(transactionId, userId);
+        if (!existingTransaction) {
+            return response(res, 404, '交易记录不存在');
+        }
+        
+        // 验证请求体
         const { error } = validateTransaction(req.body, true);
         if (error) {
-            return res.status(400).json({
-                code: 400,
-                message: error.details[0].message,
-                data: null
-            });
+            return response(res, 400, error.details[0].message);
         }
-
-        const updated = await Transaction.update(req.params.id, req.user.id, req.body);
-        if (!updated) {
-            return res.status(404).json({
-                code: 404,
-                message: 'Transaction not found',
-                data: null
-            });
-        }
-
-        const transaction = await Transaction.findById(req.params.id, req.user.id);
-        res.json({
-            code: 200,
-            message: 'Transaction updated successfully',
-            data: transaction
-        });
-    } catch (err) {
-        console.error('Error updating transaction:', err);
-        res.status(500).json({
-            code: 500,
-            message: 'Internal server error',
-            data: null
-        });
+        
+        // 更新交易记录
+        await Transaction.update(transactionId, userId, req.body);
+        const updatedTransaction = await Transaction.findById(transactionId, userId);
+        
+        return response(res, 200, '交易记录更新成功', updatedTransaction);
+    } catch (error) {
+        console.error('更新交易记录出错:', error);
+        return response(res, 500, '更新交易记录时发生错误', { error: error.message });
     }
 };
 
 // 删除交易记录
 const deleteTransaction = async (req, res) => {
     try {
-        const deleted = await Transaction.delete(req.params.id, req.user.id);
-        if (!deleted) {
-            return res.status(404).json({
-                code: 404,
-                message: 'Transaction not found',
-                data: null
-            });
+        const userId = req.user.id;
+        const transactionId = req.params.id;
+        
+        // 验证交易记录是否存在
+        const existingTransaction = await Transaction.findById(transactionId, userId);
+        if (!existingTransaction) {
+            return response(res, 404, '交易记录不存在');
         }
-
-        res.json({
-            code: 200,
-            message: 'Transaction deleted successfully',
-            data: null
-        });
-    } catch (err) {
-        console.error('Error deleting transaction:', err);
-        res.status(500).json({
-            code: 500,
-            message: 'Internal server error',
-            data: null
-        });
+        
+        // 删除交易记录
+        await Transaction.delete(transactionId, userId);
+        
+        return response(res, 200, '交易记录删除成功');
+    } catch (error) {
+        console.error('删除交易记录出错:', error);
+        return response(res, 500, '删除交易记录时发生错误', { error: error.message });
     }
 };
 
