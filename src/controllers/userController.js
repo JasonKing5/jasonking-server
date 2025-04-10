@@ -1,18 +1,19 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { response } = require('../utils/responseUtil');
+const { response, success, error, StatusCodes } = require('../utils/responseUtil');
 
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll();
     
-    return response(res, 200, '获取用户列表成功', users.map(user => ({
+    return success(res, '获取用户列表成功', users.map(user => ({
       ...user,
       password: undefined
     })));
-  } catch (error) {
-    return response(res, 500, '服务器错误');
+  } catch (err) {
+    console.error('获取用户列表错误:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '服务器错误');
   }
 };
 
@@ -21,13 +22,14 @@ const getUserById = async (req, res) => {
     const user = await User.findById(req.params.id);
     
     if (!user) {
-      return response(res, 404, '用户不存在');
+      return error(res, StatusCodes.NOT_FOUND, '用户不存在');
     }
     
     const { password, ...userWithoutPassword } = user;
-    return response(res, 200, '获取用户信息成功', userWithoutPassword);
-  } catch (error) {
-    return response(res, 500, '服务器错误');
+    return success(res, '获取用户信息成功', userWithoutPassword);
+  } catch (err) {
+    console.error('获取用户信息错误:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '服务器错误');
   }
 };
 
@@ -35,7 +37,7 @@ const updateUser = async (req, res) => {
   try {
     // 确保用户只能更新自己的信息
     if (req.user.id !== parseInt(req.params.id)) {
-      return response(res, 403, '无权修改其他用户信息');
+      return error(res, StatusCodes.NO_PERMISSION, '无权修改其他用户信息');
     }
     
     const { username, email, password } = req.body;
@@ -52,13 +54,14 @@ const updateUser = async (req, res) => {
     const updatedUser = await User.update(req.params.id, userData);
     
     if (!updatedUser) {
-      return response(res, 404, '用户不存在');
+      return error(res, StatusCodes.NOT_FOUND, '用户不存在');
     }
     
     const { password: _, ...userWithoutPassword } = updatedUser;
-    return response(res, 200, '用户信息更新成功', userWithoutPassword);
-  } catch (error) {
-    return response(res, 500, '服务器错误', { error: error.message });
+    return success(res, '用户信息更新成功', userWithoutPassword);
+  } catch (err) {
+    console.error('更新用户信息错误:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '服务器错误', { error: err.message });
   }
 };
 
@@ -66,23 +69,24 @@ const deleteUser = async (req, res) => {
   try {
     // 确保用户只能删除自己的账号
     if (req.user.id !== parseInt(req.params.id)) {
-      return response(res, 403, '无权删除其他用户账号');
+      return error(res, StatusCodes.NO_PERMISSION, '无权删除其他用户账号');
     }
     
     // 特殊保护：不允许删除root用户
     if (req.user.username === 'root') {
-      return response(res, 403, '不允许删除root用户');
+      return error(res, StatusCodes.NO_PERMISSION, '不允许删除root用户');
     }
     
     const deleted = await User.delete(req.params.id);
     
     if (!deleted) {
-      return response(res, 404, '用户不存在');
+      return error(res, StatusCodes.NOT_FOUND, '用户不存在');
     }
     
-    return response(res, 200, '用户删除成功');
-  } catch (error) {
-    return response(res, 500, '服务器错误');
+    return success(res, '用户删除成功');
+  } catch (err) {
+    console.error('删除用户错误:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '服务器错误');
   }
 };
 

@@ -1,5 +1,5 @@
 const habit = require('../models/habit');
-const { response } = require('../utils/responseUtil');
+const { success, error, StatusCodes } = require('../utils/responseUtil');
 
 // 创建新习惯
 const createHabit = async (req, res) => {
@@ -12,15 +12,15 @@ const createHabit = async (req, res) => {
 
     // 验证必填字段
     if (!habitData.name) {
-      return response(res, 400, '习惯名称不能为空');
+      return error(res, StatusCodes.INVALID_PARAMS, '习惯名称不能为空');
     }
 
     const newHabit = await habit.create(habitData);
     
-    return response(res, 201, '习惯创建成功', newHabit);
-  } catch (error) {
-    console.error('创建习惯出错:', error);
-    return response(res, 500, '创建习惯时发生错误', { error: error.message });
+    return success(res, '习惯创建成功', newHabit);
+  } catch (err) {
+    console.error('创建习惯出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '创建习惯时发生错误', { error: err.message });
   }
 };
 
@@ -44,10 +44,10 @@ const getUserHabits = async (req, res) => {
     
     const habits = await habit.findAllByUser(userId, filters);
     
-    return response(res, 200, '获取习惯列表成功', habits);
-  } catch (error) {
-    console.error('获取习惯列表出错:', error);
-    return response(res, 500, '获取习惯列表时发生错误', { error: error.message });
+    return success(res, '获取习惯列表成功', habits);
+  } catch (err) {
+    console.error('获取习惯列表出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取习惯列表时发生错误', { error: err.message });
   }
 };
 
@@ -60,13 +60,13 @@ const getHabitDetails = async (req, res) => {
     const habitData = await habit.findById(habitId, userId);
     
     if (!habitData) {
-      return response(res, 404, '未找到该习惯');
+      return error(res, StatusCodes.NOT_FOUND, '未找到该习惯');
     }
     
-    return response(res, 200, '获取习惯详情成功', habitData);
-  } catch (error) {
-    console.error('获取习惯详情出错:', error);
-    return response(res, 500, '获取习惯详情时发生错误', { error: error.message });
+    return success(res, '获取习惯详情成功', habitData);
+  } catch (err) {
+    console.error('获取习惯详情出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取习惯详情时发生错误', { error: err.message });
   }
 };
 
@@ -80,13 +80,13 @@ const updateHabit = async (req, res) => {
     const updatedHabit = await habit.update(habitId, userId, updates);
     
     if (!updatedHabit) {
-      return response(res, 404, '未找到该习惯');
+      return error(res, StatusCodes.NOT_FOUND, '未找到该习惯');
     }
     
-    return response(res, 200, '习惯更新成功', updatedHabit);
-  } catch (error) {
-    console.error('更新习惯出错:', error);
-    return response(res, 500, '更新习惯时发生错误', { error: error.message });
+    return success(res, '习惯更新成功', updatedHabit);
+  } catch (err) {
+    console.error('更新习惯出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '更新习惯时发生错误', { error: err.message });
   }
 };
 
@@ -99,13 +99,13 @@ const deleteHabit = async (req, res) => {
     const result = await habit.delete(habitId, userId);
     
     if (!result) {
-      return response(res, 404, '未找到该习惯');
+      return error(res, StatusCodes.NOT_FOUND, '未找到该习惯');
     }
     
-    return response(res, 200, '习惯删除成功');
-  } catch (error) {
-    console.error('删除习惯出错:', error);
-    return response(res, 500, '删除习惯时发生错误', { error: error.message });
+    return success(res, '习惯删除成功');
+  } catch (err) {
+    console.error('删除习惯出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '删除习惯时发生错误', { error: err.message });
   }
 };
 
@@ -119,13 +119,13 @@ const logHabitCompletion = async (req, res) => {
     const result = await habit.logHabit(habitId, userId, logData);
     
     if (!result) {
-      return response(res, 404, '未找到该习惯');
+      return error(res, StatusCodes.NOT_FOUND, '未找到该习惯');
     }
     
-    return response(res, 201, '习惯记录成功', result);
-  } catch (error) {
-    console.error('记录习惯出错:', error);
-    return response(res, 500, '记录习惯时发生错误', { error: error.message });
+    return success(res, '习惯记录成功', result);
+  } catch (err) {
+    console.error('记录习惯出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '记录习惯时发生错误', { error: err.message });
   }
 };
 
@@ -149,10 +149,10 @@ const getHabitLogs = async (req, res) => {
     
     const logs = await habit.getHabitLogs(habitId, userId, filters);
     
-    return response(res, 200, '获取习惯日志成功', logs);
-  } catch (error) {
-    console.error('获取习惯日志出错:', error);
-    return response(res, 500, '获取习惯日志时发生错误', { error: error.message });
+    return success(res, '获取习惯日志成功', logs);
+  } catch (err) {
+    console.error('获取习惯日志出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取习惯日志时发生错误', { error: err.message });
   }
 };
 
@@ -170,10 +170,10 @@ const getHabitStats = async (req, res) => {
     
     const stats = await habit.getStats(userId, filters);
     
-    return response(res, 200, '获取习惯统计成功', stats);
-  } catch (error) {
-    console.error('获取习惯统计出错:', error);
-    return response(res, 500, '获取习惯统计时发生错误', { error: error.message });
+    return success(res, '获取习惯统计成功', stats);
+  } catch (err) {
+    console.error('获取习惯统计出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取习惯统计时发生错误', { error: err.message });
   }
 };
 
@@ -197,10 +197,10 @@ const getAllHabitLogs = async (req, res) => {
     
     const logs = await habit.getAllUserHabitLogs(userId, filters);
     
-    return response(res, 200, '获取所有习惯日志成功', logs);
-  } catch (error) {
-    console.error('获取所有习惯日志出错:', error);
-    return response(res, 500, '获取所有习惯日志时发生错误', { error: error.message });
+    return success(res, '获取所有习惯日志成功', logs);
+  } catch (err) {
+    console.error('获取所有习惯日志出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取所有习惯日志时发生错误', { error: err.message });
   }
 };
 
@@ -213,13 +213,13 @@ const deleteHabitLog = async (req, res) => {
     const result = await habit.deleteHabitLog(logId, userId);
     
     if (!result) {
-      return response(res, 404, '未找到该日志');
+      return error(res, StatusCodes.NOT_FOUND, '未找到该日志');
     }
     
-    return response(res, 200, '习惯日志删除成功');
-  } catch (error) {
-    console.error('删除习惯日志出错:', error);
-    return response(res, 500, '删除习惯日志时发生错误', { error: error.message });
+    return success(res, '习惯日志删除成功');
+  } catch (err) {
+    console.error('删除习惯日志出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '删除习惯日志时发生错误', { error: err.message });
   }
 };
 

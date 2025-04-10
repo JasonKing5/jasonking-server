@@ -1,181 +1,178 @@
-const Task = require('../models/task');
-const { response } = require('../utils/responseUtil');
+const task = require('../models/task');
+const { success, error, StatusCodes } = require('../utils/responseUtil');
 
-// 任务控制器
-const taskController = {
-  // 创建任务
-  async createTask(req, res) {
-    try {
-      const { title, description, due_date, priority, status, category, tags } = req.body;
-      
-      // 验证必填字段
-      if (!title) {
-        return response(res, 400, '任务标题不能为空');
-      }
-      
-      // 从认证中获取用户ID
-      const userId = req.user.id;
-      
-      // 创建任务对象
-      const taskData = {
-        user_id: userId,
-        title,
-        description,
-        due_date,
-        priority,
-        status,
-        category,
-        tags
-      };
-      
-      // 保存到数据库
-      const newTask = await Task.create(taskData);
-      
-      return response(res, 201, '任务创建成功', newTask);
-    } catch (error) {
-      console.error('创建任务出错:', error);
-      return response(res, 500, '服务器内部错误');
+// 创建任务
+const createTask = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { title, description, due_date, priority, status, category } = req.body;
+    
+    // 验证必填字段
+    if (!title) {
+      return error(res, StatusCodes.INVALID_PARAMS, '任务标题不能为空');
     }
-  },
-  
-  // 获取用户所有任务
-  async getUserTasks(req, res) {
-    try {
-      const userId = req.user.id;
-      
-      // 从查询参数中获取过滤条件
-      const filters = {
-        status: req.query.status,
-        priority: req.query.priority,
-        category: req.query.category,
-        due_date_before: req.query.due_date_before,
-        due_date_after: req.query.due_date_after,
-        sort_by: req.query.sort_by,
-        sort_order: req.query.sort_order
-      };
-      
-      // 查询数据库
-      const tasks = await Task.findAllByUser(userId, filters);
-      
-      return response(res, 200, '任务获取成功', tasks);
-    } catch (error) {
-      console.error('获取任务列表出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
-  },
-  
-  // 获取单个任务详情
-  async getTaskById(req, res) {
-    try {
-      const taskId = req.params.id;
-      const userId = req.user.id;
-      
-      // 查询数据库
-      const task = await Task.findById(taskId, userId);
-      
-      if (!task) {
-        return response(res, 404, '任务不存在或无权访问');
-      }
-      
-      return response(res, 200, '任务获取成功', task);
-    } catch (error) {
-      console.error('获取任务详情出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
-  },
-  
-  // 更新任务
-  async updateTask(req, res) {
-    try {
-      const taskId = req.params.id;
-      const userId = req.user.id;
-      const updateData = req.body;
-      
-      // 更新数据库
-      const updatedTask = await Task.update(taskId, userId, updateData);
-      
-      if (!updatedTask) {
-        return response(res, 404, '任务不存在或无权访问');
-      }
-      
-      return response(res, 200, '任务更新成功', updatedTask);
-    } catch (error) {
-      console.error('更新任务出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
-  },
-  
-  // 删除任务
-  async deleteTask(req, res) {
-    try {
-      const taskId = req.params.id;
-      const userId = req.user.id;
-      
-      // 从数据库删除
-      const result = await Task.delete(taskId, userId);
-      
-      if (!result) {
-        return response(res, 404, '任务不存在或无权访问');
-      }
-      
-      return response(res, 200, '任务删除成功');
-    } catch (error) {
-      console.error('删除任务出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
-  },
-  
-  // 获取任务统计数据
-  async getTaskStats(req, res) {
-    try {
-      const userId = req.user.id;
-      
-      // 查询统计数据
-      const stats = await Task.getStats(userId);
-      
-      return response(res, 200, '统计数据获取成功', stats);
-    } catch (error) {
-      console.error('获取任务统计数据出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
-  },
-  
-  // 批量更新任务状态
-  async bulkUpdateTaskStatus(req, res) {
-    try {
-      const userId = req.user.id;
-      const { task_ids, status } = req.body;
-      
-      // 验证必填字段
-      if (!task_ids || !Array.isArray(task_ids) || task_ids.length === 0) {
-        return response(res, 400, '任务ID列表不能为空');
-      }
-      
-      if (!status) {
-        return response(res, 400, '状态不能为空');
-      }
-      
-      // 验证状态值是否有效
-      const validStatuses = ['not_started', 'in_progress', 'completed'];
-      if (!validStatuses.includes(status)) {
-        return response(res, 400, '无效的状态值');
-      }
-      
-      // 批量更新
-      const result = await Task.bulkUpdateStatus(userId, task_ids, status);
-      
-      if (!result.success) {
-        return response(res, 400, result.message || '批量更新失败');
-      }
-      
-      return response(res, 200, '批量更新成功', {
-        affected_rows: result.affectedRows
-      });
-    } catch (error) {
-      console.error('批量更新任务状态出错:', error);
-      return response(res, 500, '服务器内部错误');
-    }
+    
+    // 创建任务数据
+    const taskData = {
+      user_id: userId,
+      title,
+      description: description || '',
+      due_date: due_date || null,
+      priority: priority || 'medium',
+      status: status || 'pending',
+      category: category || 'default'
+    };
+    
+    const newTask = await task.create(taskData);
+    
+    return success(res, '任务创建成功', newTask);
+  } catch (err) {
+    console.error('创建任务出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '创建任务时发生错误', { error: err.message });
   }
 };
 
-module.exports = taskController;
+// 获取用户的所有任务
+const getUserTasks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { status, priority, category, due_date_after, due_date_before, sort_by, sort_order } = req.query;
+    
+    // 构建过滤参数
+    const filters = {};
+    
+    if (status) filters.status = status;
+    if (priority) filters.priority = priority;
+    if (category) filters.category = category;
+    if (due_date_after) filters.due_date_after = due_date_after;
+    if (due_date_before) filters.due_date_before = due_date_before;
+    if (sort_by) filters.sort_by = sort_by;
+    if (sort_order && ['ASC', 'DESC'].includes(sort_order.toUpperCase())) {
+      filters.sort_order = sort_order.toUpperCase();
+    }
+    
+    const tasks = await task.findAllByUser(userId, filters);
+    
+    return success(res, '获取任务列表成功', tasks);
+  } catch (err) {
+    console.error('获取任务列表出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取任务列表时发生错误', { error: err.message });
+  }
+};
+
+// 获取单个任务详情
+const getTaskById = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const taskId = req.params.id;
+    
+    const taskData = await task.findById(taskId, userId);
+    
+    if (!taskData) {
+      return error(res, StatusCodes.NOT_FOUND, '未找到该任务');
+    }
+    
+    return success(res, '获取任务详情成功', taskData);
+  } catch (err) {
+    console.error('获取任务详情出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取任务详情时发生错误', { error: err.message });
+  }
+};
+
+// 更新任务
+const updateTask = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const taskId = req.params.id;
+    const updates = req.body;
+    
+    // 验证任务存在性
+    const existingTask = await task.findById(taskId, userId);
+    if (!existingTask) {
+      return error(res, StatusCodes.NOT_FOUND, '未找到该任务');
+    }
+    
+    const updatedTask = await task.update(taskId, userId, updates);
+    
+    return success(res, '任务更新成功', updatedTask);
+  } catch (err) {
+    console.error('更新任务出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '更新任务时发生错误', { error: err.message });
+  }
+};
+
+// 删除任务
+const deleteTask = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const taskId = req.params.id;
+    
+    // 验证任务存在性
+    const existingTask = await task.findById(taskId, userId);
+    if (!existingTask) {
+      return error(res, StatusCodes.NOT_FOUND, '未找到该任务');
+    }
+    
+    await task.delete(taskId, userId);
+    
+    return success(res, '任务删除成功');
+  } catch (err) {
+    console.error('删除任务出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '删除任务时发生错误', { error: err.message });
+  }
+};
+
+// 批量更新任务状态
+const bulkUpdateTaskStatus = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { task_ids, status } = req.body;
+    
+    // 验证请求数据
+    if (!task_ids || !Array.isArray(task_ids) || task_ids.length === 0) {
+      return error(res, StatusCodes.INVALID_PARAMS, '任务ID列表不能为空');
+    }
+    
+    if (!status) {
+      return error(res, StatusCodes.INVALID_PARAMS, '状态不能为空');
+    }
+    
+    // 检查所有任务是否属于当前用户
+    const tasks = await task.findByIds(task_ids, userId);
+    if (tasks.length !== task_ids.length) {
+      return error(res, StatusCodes.NOT_FOUND, '部分任务不存在或不属于当前用户');
+    }
+    
+    // 批量更新状态
+    await task.bulkUpdateStatus(task_ids, userId, status);
+    
+    return success(res, '任务状态批量更新成功');
+  } catch (err) {
+    console.error('批量更新任务状态出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '批量更新任务状态时发生错误', { error: err.message });
+  }
+};
+
+// 获取任务统计信息
+const getTaskStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const stats = await task.getStats(userId);
+    
+    return success(res, '获取任务统计信息成功', stats);
+  } catch (err) {
+    console.error('获取任务统计信息出错:', err);
+    return error(res, StatusCodes.SERVER_ERROR, '获取任务统计信息时发生错误', { error: err.message });
+  }
+};
+
+module.exports = {
+  createTask,
+  getUserTasks,
+  getTaskById,
+  updateTask,
+  deleteTask,
+  bulkUpdateTaskStatus,
+  getTaskStats
+};

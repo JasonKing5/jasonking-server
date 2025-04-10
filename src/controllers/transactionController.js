@@ -1,23 +1,23 @@
 const Transaction = require('../models/transaction');
 const { validateTransaction } = require('../utils/validators');
-const { response } = require('../utils/responseUtil');
+const { success, error, StatusCodes } = require('../utils/responseUtil');
 
 // 创建交易记录
 const create = async (req, res) => {
     try {
-        const { error } = validateTransaction(req.body);
-        if (error) {
-            return response(res, 400, error.details[0].message);
+        const { error: validationError } = validateTransaction(req.body);
+        if (validationError) {
+            return error(res, StatusCodes.INVALID_PARAMS, validationError.details[0].message);
         }
 
         const userId = req.user.id;
         const transactionId = await Transaction.create(userId, req.body);
         const transaction = await Transaction.findById(transactionId, userId);
 
-        return response(res, 201, '交易记录创建成功', transaction);
-    } catch (error) {
-        console.error('创建交易记录出错:', error);
-        return response(res, 500, '创建交易记录时发生错误', { error: error.message });
+        return success(res, '交易记录创建成功', transaction);
+    } catch (err) {
+        console.error('创建交易记录出错:', err);
+        return error(res, StatusCodes.SERVER_ERROR, '创建交易记录时发生错误', { error: err.message });
     }
 };
 
@@ -38,10 +38,10 @@ const getAll = async (req, res) => {
         
         const transactions = await Transaction.findAll(userId, filters, sort_by, sort_order);
         
-        return response(res, 200, '获取交易记录成功', transactions);
-    } catch (error) {
-        console.error('获取交易记录出错:', error);
-        return response(res, 500, '获取交易记录时发生错误', { error: error.message });
+        return success(res, '获取交易记录成功', transactions);
+    } catch (err) {
+        console.error('获取交易记录出错:', err);
+        return error(res, StatusCodes.SERVER_ERROR, '获取交易记录时发生错误', { error: err.message });
     }
 };
 
@@ -54,13 +54,13 @@ const getOne = async (req, res) => {
         const transaction = await Transaction.findById(transactionId, userId);
         
         if (!transaction) {
-            return response(res, 404, '交易记录不存在');
+            return error(res, StatusCodes.NOT_FOUND, '交易记录不存在');
         }
         
-        return response(res, 200, '获取交易记录成功', transaction);
-    } catch (error) {
-        console.error('获取交易记录出错:', error);
-        return response(res, 500, '获取交易记录时发生错误', { error: error.message });
+        return success(res, '获取交易记录成功', transaction);
+    } catch (err) {
+        console.error('获取交易记录出错:', err);
+        return error(res, StatusCodes.SERVER_ERROR, '获取交易记录时发生错误', { error: err.message });
     }
 };
 
@@ -73,23 +73,23 @@ const update = async (req, res) => {
         // 验证交易记录是否存在
         const existingTransaction = await Transaction.findById(transactionId, userId);
         if (!existingTransaction) {
-            return response(res, 404, '交易记录不存在');
+            return error(res, StatusCodes.NOT_FOUND, '交易记录不存在');
         }
         
         // 验证请求体
-        const { error } = validateTransaction(req.body, true);
-        if (error) {
-            return response(res, 400, error.details[0].message);
+        const { error: validationError } = validateTransaction(req.body, true);
+        if (validationError) {
+            return error(res, StatusCodes.INVALID_PARAMS, validationError.details[0].message);
         }
         
         // 更新交易记录
         await Transaction.update(transactionId, userId, req.body);
         const updatedTransaction = await Transaction.findById(transactionId, userId);
         
-        return response(res, 200, '交易记录更新成功', updatedTransaction);
-    } catch (error) {
-        console.error('更新交易记录出错:', error);
-        return response(res, 500, '更新交易记录时发生错误', { error: error.message });
+        return success(res, '交易记录更新成功', updatedTransaction);
+    } catch (err) {
+        console.error('更新交易记录出错:', err);
+        return error(res, StatusCodes.SERVER_ERROR, '更新交易记录时发生错误', { error: err.message });
     }
 };
 
@@ -102,16 +102,16 @@ const deleteTransaction = async (req, res) => {
         // 验证交易记录是否存在
         const existingTransaction = await Transaction.findById(transactionId, userId);
         if (!existingTransaction) {
-            return response(res, 404, '交易记录不存在');
+            return error(res, StatusCodes.NOT_FOUND, '交易记录不存在');
         }
         
         // 删除交易记录
         await Transaction.delete(transactionId, userId);
         
-        return response(res, 200, '交易记录删除成功');
-    } catch (error) {
-        console.error('删除交易记录出错:', error);
-        return response(res, 500, '删除交易记录时发生错误', { error: error.message });
+        return success(res, '交易记录删除成功');
+    } catch (err) {
+        console.error('删除交易记录出错:', err);
+        return error(res, StatusCodes.SERVER_ERROR, '删除交易记录时发生错误', { error: err.message });
     }
 };
 
