@@ -224,8 +224,7 @@ CREATE INDEX idx_habit_logs_status ON habit_logs(status);
 ```
 
 常见状态码：
-- 200: 成功
-- 201: 创建成功
+- 0: 成功
 - 400: 请求参数错误
 - 401: 未授权
 - 403: 禁止访问
@@ -255,9 +254,9 @@ curl -X POST '<baseUrl>/auth/register' \
   "email": "string"
 }
 
-成功响应：(201 Created)
+成功响应：(0 Created)
 {
-  "code": 201,
+  "code": 0,
   "message": "User registered successfully",
   "data": {
     "id": number,
@@ -291,9 +290,9 @@ curl -X POST '<baseUrl>/auth/login' \
   "password": "string"
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Login successful",
   "data": {
     "token": "string",
@@ -328,9 +327,9 @@ GET /api/users
 curl -X GET '<baseUrl>/users' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Users retrieved successfully",
   "data": [
     {
@@ -372,9 +371,9 @@ curl -X PUT '<baseUrl>/users/2' \
   "role": "string"  // 仅管理员可修改
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "User updated successfully",
   "data": null
 }
@@ -394,9 +393,9 @@ DELETE /api/users/:id
 curl -X DELETE '<baseUrl>/users/2' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "User deleted successfully",
   "data": null
 }
@@ -433,7 +432,7 @@ curl -X POST '<baseUrl>/transactions' \
 
 # Example Response:
 {
-  "code": 201,
+  "code": 0,
   "message": "Transaction created successfully",
   "data": {
     "id": 1,
@@ -456,9 +455,9 @@ curl -X POST '<baseUrl>/transactions' \
   "date": "string"       // 交易日期（可选，默认为当前时间）
 }
 
-成功响应：(201 Created)
+成功响应：(0 Created)
 {
-  "code": 201,
+  "code": 0,
   "message": "Transaction created successfully",
   "data": {
     "id": number,
@@ -482,7 +481,7 @@ curl -X GET '<baseUrl>/transactions' \
 
 # Example Response:
 {
-  "code": 200,
+  "code": 0,
   "message": "Transactions retrieved successfully",
   "data": [
     {
@@ -498,9 +497,9 @@ curl -X GET '<baseUrl>/transactions' \
   ]
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Transactions retrieved successfully",
   "data": [
     {
@@ -526,7 +525,7 @@ curl -X GET '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction retrieved successfully",
   "data": {
     "id": 1,
@@ -540,9 +539,9 @@ curl -X GET '<baseUrl>/transactions/1' \
   }
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction retrieved successfully",
   "data": {
     "id": number,
@@ -578,7 +577,7 @@ curl -X PUT '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction updated successfully",
   "data": {
     "id": 1,
@@ -601,9 +600,9 @@ curl -X PUT '<baseUrl>/transactions/1' \
   "date": "string"       // 可选
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction updated successfully",
   "data": {
     "id": number,
@@ -634,14 +633,14 @@ curl -X DELETE '<baseUrl>/transactions/1' \
 
 # Example Response:
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction deleted successfully",
   "data": null
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "Transaction deleted successfully",
   "data": null
 }
@@ -684,9 +683,9 @@ curl -X POST '<baseUrl>/tasks' \
   "tags": ["报告", "市场分析"]     // 可选，任务标签
 }
 
-成功响应：(201 Created)
+成功响应：(0 Created)
 {
-  "code": 201,
+  "code": 0,
   "message": "任务创建成功",
   "data": {
     "id": 1,
@@ -719,9 +718,9 @@ curl -X GET '<baseUrl>/tasks?status=in_progress&priority=high&sort_by=due_date&s
 - sort_by: 排序字段(如created_at, due_date, priority等)
 - sort_order: 排序方向(ASC/DESC)
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "任务获取成功",
   "data": [
     {
@@ -749,9 +748,9 @@ GET /api/tasks/:id
 curl -X GET '<baseUrl>/tasks/1' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "任务获取成功",
   "data": {
     "id": 1,
@@ -803,9 +802,9 @@ curl -X PUT '<baseUrl>/tasks/1' \
   "tags": ["报告", "修订"]         // 可选，更新任务标签
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "任务更新成功",
   "data": {
     "id": 1,
@@ -838,9 +837,9 @@ DELETE /api/tasks/:id
 curl -X DELETE '<baseUrl>/tasks/1' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "任务删除成功",
   "data": null
 }
@@ -861,9 +860,9 @@ GET /api/tasks/stats/overview
 curl -X GET '<baseUrl>/tasks/stats/overview' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "统计数据获取成功",
   "data": {
     "total": 10,
@@ -897,9 +896,9 @@ curl -X PATCH '<baseUrl>/tasks/bulk/status' \
   "status": "completed"           // 必填，新状态
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "批量更新成功",
   "data": {
     "affected_rows": 3
@@ -941,9 +940,9 @@ curl -X POST '<baseUrl>/habits' \
   "is_active": boolean          // 可选，是否激活（默认true）
 }
 
-成功响应：(201 Created)
+成功响应：(0 Created)
 {
-  "code": 201,
+  "code": 0,
   "message": "习惯创建成功",
   "data": {
     "id": number,
@@ -987,9 +986,9 @@ curl -X GET '<baseUrl>/habits?frequency=daily&is_active=true' \
 - sort_by: 排序字段（默认created_at）
 - sort_order: 排序方向（ASC/DESC，默认DESC）
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "获取习惯列表成功",
   "data": [
     {
@@ -1020,9 +1019,9 @@ GET /api/habits/:id
 curl -X GET '<baseUrl>/habits/1' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "获取习惯详情成功",
   "data": {
     "id": number,
@@ -1078,9 +1077,9 @@ curl -X PUT '<baseUrl>/habits/1' \
   "is_active": boolean          // 可选
 }
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "习惯更新成功",
   "data": {
     "id": number,
@@ -1116,9 +1115,9 @@ DELETE /api/habits/:id
 curl -X DELETE '<baseUrl>/habits/1' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "习惯删除成功",
   "data": null
 }
@@ -1152,9 +1151,9 @@ curl -X POST '<baseUrl>/habits/1/logs' \
   "notes": "string"       // 可选，备注
 }
 
-成功响应：(201 Created)
+成功响应：(0 Created)
 {
-  "code": 201,
+  "code": 0,
   "message": "习惯记录成功",
   "data": {
     "id": number,
@@ -1189,9 +1188,9 @@ curl -X GET '<baseUrl>/habits/1/logs?status=completed&date_after=2025-03-01' \
 - sort_by: 排序字段（默认date）
 - sort_order: 排序方向（ASC/DESC，默认DESC）
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "获取习惯日志成功",
   "data": [
     {
@@ -1224,9 +1223,9 @@ curl -X GET '<baseUrl>/habits/logs/all?date_after=2025-03-01&habit_id=1' \
 - sort_by: 排序字段（默认date）
 - sort_order: 排序方向（ASC/DESC，默认DESC）
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "获取所有习惯日志成功",
   "data": [
     {
@@ -1257,9 +1256,9 @@ curl -X GET '<baseUrl>/habits/stats/summary?date_after=2025-03-01&date_before=20
 - date_after: 日期过滤（大于等于指定日期）
 - date_before: 日期过滤（小于等于指定日期）
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "获取习惯统计成功",
   "data": {
     "overall": {
@@ -1295,9 +1294,9 @@ DELETE /api/habits/logs/:logId
 curl -X DELETE '<baseUrl>/habits/logs/1' \
   -H 'Authorization: Bearer <token>'
 
-成功响应：(200 OK)
+成功响应：(0 OK)
 {
-  "code": 200,
+  "code": 0,
   "message": "习惯日志删除成功",
   "data": null
 }
@@ -1326,7 +1325,7 @@ curl -X POST <baseUrl>/auth/login \
 
 # 成功响应示例：
 {
-  "code": 200,
+  "code": 0,
   "message": "Login successful",
   "data": {
     "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -1349,7 +1348,7 @@ curl -X GET <baseUrl>/users \
 
 # 成功响应示例：
 {
-  "code": 200,
+  "code": 0,
   "message": "Users retrieved successfully",
   "data": [
     {
@@ -1371,7 +1370,7 @@ curl -X PUT <baseUrl>/users/2 \
 
 # 成功响应示例：
 {
-  "code": 200,
+  "code": 0,
   "message": "User updated successfully",
   "data": null
 }
