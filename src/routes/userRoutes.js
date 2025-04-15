@@ -7,7 +7,8 @@ const router = express.Router();
 // Protected routes
 router.get('/', auth, adminAuth, userController.getAllUsers);
 router.get('/:id', auth, userController.getUserById);
-router.put('/:id', auth, userController.updateUser);
+router.put('/', auth, userController.updateUser);
+router.post('/', auth, adminAuth, userController.createUser);
 router.delete('/:id', auth, adminAuth, userController.deleteUser);
 
 module.exports = router;

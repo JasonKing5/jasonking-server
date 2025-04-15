@@ -11,6 +11,14 @@ const findByUsername = async (username) => {
   return rows[0];
 };
 
+const findByEmail = async (email) => {
+  const [rows] = await pool.execute(
+    'SELECT * FROM users WHERE email = ?',
+    [email]
+  );
+  return rows[0];
+};
+
 const findById = async (id) => {
   const [rows] = await pool.execute(
     'SELECT * FROM users WHERE id = ?',
@@ -29,10 +37,10 @@ const create = async (userData) => {
 };
 
 const update = async (id, userData) => {
-  const { username, email, role } = userData;
+  const { username, email } = userData;
   const [result] = await pool.execute(
-    'UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?',
-    [username, email, role, id]
+    'UPDATE users SET username = ?, email = ? WHERE id = ?',
+    [username, email, id]
   );
   return result.affectedRows > 0;
 };
@@ -52,6 +60,7 @@ const findAll = async () => {
 
 module.exports = {
   findByUsername,
+  findByEmail,
   findById,
   create,
   update,
