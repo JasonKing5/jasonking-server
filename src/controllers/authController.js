@@ -46,10 +46,10 @@ exports.register = async (req, res) => {
 // 用户登录
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     // 查找用户
-    const user = await User.findByUsername(username);
+    const user = await User.findByEmail(email);
     if (!user) {
       return error(res, StatusCodes.NOT_LOGGED_IN, '无效的凭据');
     }
